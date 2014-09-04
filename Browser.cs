@@ -4,7 +4,6 @@ using System.Net;
 using System.IO;
 using System.Text;
 
-
 namespace twbot
 {
     class Browser
@@ -14,6 +13,7 @@ namespace twbot
         private int _status;
         private CookieContainer _cookieJar;
         private string _redirect;
+        private string _useragent;
 
         public Browser()
         {
@@ -21,10 +21,15 @@ namespace twbot
             _content = null;
             _status = 0;
             _url = null;
+            _useragent = "TWBot Dev";
+            _redirect = null;
         }
 
-
-        public bool get(string url)
+        /*
+         * string url: URL to send GET-Request
+         * returns the http status code
+         */
+        public int get(string url)
         {
             try
             { 
@@ -33,14 +38,18 @@ namespace twbot
             } catch (Exception e)
             {
                 Console.WriteLine("browser::get() exception: {0}", e.Message);
-                return false;
+                return 0;
             }
             return get(_url);
         }
 
-        public bool get(Uri uri)
+        // see get(string url)
+        public int get(Uri uri)
         {
-            Console.WriteLine("Request "+uri);
+
+            // display URI
+            Console.WriteLine("GET "+uri);
+
             HttpWebRequest req = null;
             try
             {
@@ -49,17 +58,12 @@ namespace twbot
             } catch (Exception e)
             {
                 Console.WriteLine("browser::get() exception: {0}", e.Message);
-                return false;
+                return 0;
             }
-            Console.WriteLine(_cookieJar.Count);
-            Console.WriteLine("Cookie count: " + _cookieJar.Count);
-           /* foreach (Cookie cookie in _cookieJar)
-            {
-                Console.WriteLine(cookie.ToString());
-            }*/
+
+            // use global cookie container
             req.CookieContainer = _cookieJar;
 
-            Console.WriteLine(req.Headers.ToString()); // DEBUG
             HttpWebResponse response = null;
             try
             {
@@ -67,23 +71,27 @@ namespace twbot
             } catch ( WebException e)
             {
                 Console.WriteLine("browser::get() exception: {0}", e.Message);
-                return false;
+                return 0;
             }
 
-            Console.WriteLine("Status: {0}", (int) response.StatusCode);
-
+            // retrieve response and save in _content
             Stream response_stream = response.GetResponseStream();
-            StreamReader response_streamr = new StreamReader(response_stream);
-            _content = response_streamr.ReadToEnd();
-            Console.WriteLine(_content);
+            StreamReader response_streamer = new StreamReader(response_stream);
+            _content = response_streamer.ReadToEnd();
 
-            return true;
+            response_stream.Close();
+            response_streamer.Close();
+            response.Close();
+
+            _status = (int)response.StatusCode;
+            Console.WriteLine("==> "+_status);
+            return _status;
 
         }
 
         /*
          * Requests the host with a POST-method query using data as parameters
-         * returns true for success, false otherwise
+         * returns the http status code
          */
         public int post(string url, string data)
         {
@@ -102,6 +110,9 @@ namespace twbot
 
         public int post(Uri uri, string data)
         {
+
+            Console.WriteLine("POST "+uri);
+            Console.WriteLine("data: '"+data+"'");
             CookieContainer cookieJar_tmp = new CookieContainer();
             HttpWebRequest req = null;
             try
@@ -114,16 +125,13 @@ namespace twbot
                 Console.WriteLine("browser::get() exception: {0}", e.Message);
                 return 0;
             }
-            Console.WriteLine(uri);
 
             // change to POST
             req.Method = "POST";
             req.ContentType = "application/x-www-form-urlencoded";
             req.ContentLength = data.Length;
-            req.UserAgent = "TWBot";
-            req.Referer = "http://192.168.2.100/index.php";
+            req.UserAgent = _useragent;
             req.CookieContainer = cookieJar_tmp;
-            req.KeepAlive = true;
             req.AllowAutoRedirect = false;
 
             // encode our post data using ascii
@@ -133,7 +141,6 @@ namespace twbot
             Stream post_data = req.GetRequestStream();
             post_data.Write(data_bytes, 0, data.Length);
             post_data.Close();
-            //Console.WriteLine(req.Headers.ToString()); // DEBUG
 
             
             HttpWebResponse response = null;
@@ -156,7 +163,6 @@ namespace twbot
             {
                 cookie.Path = "/"; // change Path to global
                 _cookieJar.Add(cookie);
-                Console.WriteLine(_url + " | " + cookie.ToString() + " @ "+ cookie.Path);
             }
 
 
@@ -171,16 +177,16 @@ namespace twbot
             response_streamer.Close();
             response_stream.Close();
             response.Close();
-            Console.WriteLine(_content); // DEBUG
 
+            Console.WriteLine("==> "+_status);
             return _status;
         }
 
         /*
          * Refreshes the current page, only GET-requests (POST will not be refreshed)
-         * returns true for success, false for error
+         * returns http status code (just like get() and post()) 
          */
-        public bool refresh()
+        public int refresh()
         {
             // just call get on the current url for now.
             return get(_url);

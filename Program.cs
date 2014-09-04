@@ -17,7 +17,8 @@ namespace twbot
             {
                 Console.WriteLine("{0}{1}", e.GetType(), e.StackTrace);
             }
-            Console.ReadLine();
+            // only on windows:
+            // Console.ReadLine();
         }
 
         private static void run()

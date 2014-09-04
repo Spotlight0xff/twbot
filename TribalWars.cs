@@ -13,6 +13,7 @@ namespace twbot
         private string _password;
         private bool _loggedIn;
 
+        // TODO: expand and complete
         public enum View
         {
             MAIN,
@@ -29,10 +30,6 @@ namespace twbot
             _loggedIn = false;
         }
 
-        public bool refresh()
-        {
-            return _m.refresh();
-        }
 
         public bool login(string name, string password)
         {
@@ -47,12 +44,20 @@ namespace twbot
             // login
             int status = _m.post(Browser.construct(_host, "index.php", "action=login"), "user="+_user+"&password="+_password);
             if (status == 302)
-            { // expected, failure otherwise
+            { // expected redirection , login failure otherwise
                 string location = _m.getRedirect();
-                Console.WriteLine("Redirect to "+location);
 
-                _m.get(Browser.construct(_host, location));
-                _loggedIn = true; // TODO (Browser::get() should return status)
+                Console.WriteLine("Redirect to "+location);
+                
+                string url = Browser.construct(_host, location);
+                status = _m.get(url); // should be ok, some error otherwise
+                if (status == 200)
+                    _loggedIn = true;
+                else
+                {
+                    Console.WriteLine("Request to "+url+" returned "+status);
+                    Console.WriteLine("Therefore not logged in.");
+                }
             }
             return _loggedIn;
         }
