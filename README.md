@@ -1,8 +1,4 @@
-twbot
+#TWLan Bot
 =====
 
-TWLan Bot
-
-Trying to be intelligent.
-
-Adding more stuff.
+An attempt to create a _rather_ intelligent Bot for twlan.org.
