@@ -24,10 +24,10 @@ namespace twbot
         private static void run()
         {
             TribalWars tw = new TribalWars("192.168.2.100");
-            bool login = tw.login("spotlight", "3726");
+            bool login = tw.login("noob", "3726");
             if (!login)
             {
-                Console.WriteLine("Unable to login. Check login credentials.");
+                Console.WriteLine("Unable to login");
                 return;
             }
             tw.init_scan();

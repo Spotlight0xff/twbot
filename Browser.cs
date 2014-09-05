@@ -102,7 +102,7 @@ namespace twbot
             }
             catch (Exception e)
             {
-                Console.WriteLine("browser::post() exception: {0}", e.Message);
+                Console.WriteLine("browser::post() exception: {0}", e.ToString());
                 return 0;
             }
             return post(_url, data);
@@ -111,8 +111,8 @@ namespace twbot
         public int post(Uri uri, string data)
         {
 
-            Console.WriteLine("POST "+uri);
-            Console.WriteLine("data: '"+data+"'");
+            Console.WriteLine("POST " + uri);
+            Console.WriteLine("data: '" + data + "'");
             CookieContainer cookieJar_tmp = new CookieContainer();
             HttpWebRequest req = null;
             try
@@ -122,7 +122,7 @@ namespace twbot
             }
             catch (Exception e)
             {
-                Console.WriteLine("browser::get() exception: {0}", e.Message);
+                Console.WriteLine("browser::post() exception: {0}", e.ToString());
                 return 0;
             }
 
@@ -138,10 +138,18 @@ namespace twbot
             byte[] data_bytes = Encoding.ASCII.GetBytes(data);
 
             // write post data to request stream
-            Stream post_data = req.GetRequestStream();
-            post_data.Write(data_bytes, 0, data.Length);
-            post_data.Close();
-
+            try
+            {
+                using (Stream post_data = req.GetRequestStream())
+                {
+                    post_data.Write(data_bytes, 0, data.Length);
+                    post_data.Close();
+                }
+            } catch (WebException e)
+            {
+                Console.WriteLine("browser::post() exception: " + e.Message);
+                return 0;
+            }
             
             HttpWebResponse response = null;
             try
@@ -150,7 +158,7 @@ namespace twbot
             }
             catch (WebException e)
             {
-                Console.WriteLine("browser::get() exception: {0}", e.Message);
+                Console.WriteLine("browser::post() exception: " + e.Message);
                 return 0;
             }
 
@@ -171,7 +179,14 @@ namespace twbot
             
 
             // get response stream and write it to _content.
-            Stream response_stream = response.GetResponseStream();
+            Stream response_stream = null;
+            try
+            {
+                response_stream = response.GetResponseStream();
+            } catch (WebException e)
+            {
+                Console.WriteLine(e.Message);
+            }
             StreamReader response_streamer = new StreamReader(response_stream);
             _content = response_streamer.ReadToEnd();
             response_streamer.Close();
@@ -195,6 +210,11 @@ namespace twbot
         public string getContent()
         {
             return _content;
+        }
+
+        public string getUrl()
+        {
+            return _url.ToString();
         }
 
         public string getRedirect()
