@@ -199,20 +199,20 @@ namespace twbot
         {
             VillageData village = new VillageData();
 
+            // query the village overview
             _m.get(viewUrl(id, "overview"));
+
             HtmlAgilityPack.HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(_m.getContent());
             if (doc.ParseErrors != null && doc.ParseErrors.Count() > 0 )
-            {
+            { // parser error
                 Console.WriteLine("Parse error occured @ parseOverview");
                 doc.Save("failed.html");
                 return village;
             }
 
             foreach (var row in doc.DocumentNode.SelectNodes("//table[@class='vis']/tr/td[@width='50%']"))
-            {
-
-                
+            {   
                 var links = row.Descendants("a");
                 string building = "";
                 int level = 0;
@@ -223,6 +223,7 @@ namespace twbot
                 }
 
                 // Match regexp from "Marktplatz (Stufe 5) to 5"
+                // support Umlaute
                 Match match = Regex.Match(row.InnerText, @" [\u00C0-\u017Fa-zA-Z]* \([a-zA-Z]* ([0-9]{1,2})\)$", RegexOptions.IgnoreCase);
                 if (match.Success)
                 {
@@ -234,6 +235,7 @@ namespace twbot
 
                 Console.WriteLine(building + " => " + level);
             }
+
 
             return village;
         }
