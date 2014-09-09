@@ -108,6 +108,7 @@ namespace twbot
             return post(_url, data);
         }
 
+        // see 'public int post(string url, string data)'
         public int post(Uri uri, string data)
         {
 
@@ -207,24 +208,27 @@ namespace twbot
             return get(_url);
         }
 
+        // returns html content
         public string getContent()
         {
             return _content;
         }
 
+        // returns current url
         public string getUrl()
         {
             return _url.ToString();
         }
 
+        // returns redirect URL (useful for login e.g), httpcode 302
         public string getRedirect()
         {
             return _redirect;
         }
 
+        // constructs a url with the provided arguments
         public static string construct(string host, string path = null, string query = null, string fragment = null)
         {
-
             // build "http://host/path?query#fragment"
             StringBuilder str_build = new StringBuilder("http://");
             str_build.Append(host);
