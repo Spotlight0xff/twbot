@@ -7,9 +7,6 @@ namespace twbot
 {
     public class Parse
     {
-
-
-
         public static List<short> parseOverview(string html)
         {
             List<short> list = new List<short>();

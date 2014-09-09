@@ -15,6 +15,7 @@ namespace twbot
     class TribalWars
     {
 
+
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
         [Serializable]
         private struct VillageData
@@ -72,6 +73,8 @@ namespace twbot
         private string _password;
         private bool _loggedIn;
         private List<VillageData> _data;
+
+
         // TODO: expand and complete
         public enum View
         {
@@ -91,7 +94,8 @@ namespace twbot
             _data = null;
         }
 
-
+        // logs into the tribalwars server using the provided credentials
+        // host has to be provided to the constructor
         public bool login(string name, string password)
         {
             // TODO: urlencode
