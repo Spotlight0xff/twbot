@@ -36,8 +36,11 @@
     <Compile Include="Parse.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="HtmlAgilityPack">
+  <Reference Include="HtmlAgilityPack">
       <HintPath>packages\HtmlAgilityPack.dll</HintPath>
+  </Reference>
+  <Reference Include="Newtonsoft.Json.dll">
+      <HintPath>packages\Newtonsoft.Json.dll</HintPath>
   </Reference>
   <Reference Include="System" />
   <Reference Include="System.XML" />
