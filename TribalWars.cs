@@ -8,50 +8,131 @@ using System.IO;
 using HtmlAgilityPack;
 using System.Linq;
 using System.Text.RegularExpressions;
-
+using Newtonsoft.Json;
 
 namespace twbot
 {
     class TribalWars
     {
-
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-        [Serializable]
-        private struct VillageData
+        public class VillageData
         {
             short Id;
             string Name;
             short coord_x;
             short coord_y;
-            BuildingData buildings;
-            UnitsData units;
+            public BuildingData buildings;
+            public UnitsData units;
         }
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-        [Serializable]
-        private struct BuildingData
+        public class BuildingData
         {
-            short building_main;
-            short building_barracks;
-            short building_stable;
-            short building_garage;
-            short building_snob;
-            short building_smith;
-            short building_place;
-            short building_market;
-            short building_wood;
-            short building_stone;
-            short building_iron;
-            short building_farm;
-            short building_storage;
-            short building_hide;
-            short building_wall;
+            public short building_main;
+            public short building_barracks;
+            public short building_stable;
+            public short building_garage;
+            public short building_snob;
+            public short building_smith;
+            public short building_place;
+            public short building_market;
+            public short building_wood;
+            public short building_stone;
+            public short building_iron;
+            public short building_farm;
+            public short building_storage;
+            public short building_hide;
+            public short building_wall;
+
+
+
+            public void set(string building, short level)
+            {
+                query(building, false, level);
+            }
+
+            public short get(string building)
+            {
+                return query(building, true);
+            }
+
+            public string export()
+            {
+                return Newtonsoft.Json.JsonConvert.SerializeObject(this);
+            }
+
+            private short query(string building, bool op, short level = 0)
+            {
+                switch (building)
+                {
+                    case "main":
+                        return (op ? building_main : building_main=level);
+                        break;
+
+                    case "barracks":
+                        return (op ? building_barracks : building_barracks=level);
+                        break;
+
+                    case "stable":
+                        return (op ? building_stable : building_stable=level);
+                        break;
+
+                    case "garage":
+                        return (op ? building_garage : building_garage=level);
+                        break;
+
+                    case "snob":
+                        return (op ? building_snob : building_snob=level);
+                        break;
+
+                    case "smith":
+                        return (op ? building_smith : building_smith=level);
+                        break;
+
+                    case "place":
+                        return (op ? building_place : building_place=level);
+                        break;
+
+                    case "market":
+                        return (op ? building_market : building_market=level);
+                        break;
+
+                    case "wood":
+                        return (op ? building_wood : building_wood=level);
+                        break;
+
+                    case "stone":
+                        return (op ? building_stone : building_stone=level);
+                        break;
+
+                    case "iron":
+                        return (op ? building_iron : building_iron=level);
+                        break;
+
+                    case "farm":
+                        return (op ? building_farm : building_farm=level);
+                        break;
+
+                    case "storage":
+                        return (op ? building_storage : building_storage=level);
+                        break;
+ 
+                    case "hide":
+                        return (op ? building_hide : building_hide=level);
+                        break;
+
+                    case "wall":
+                        return (op ? building_wall : building_wall=level);
+                        break;
+
+ 
+
+                }
+
+                return 0;
+            }
+
         }
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-        [Serializable]
-        private struct UnitsData
+        public class UnitsData
         {
             short unit_spear;
             short unit_sword;
@@ -202,6 +283,7 @@ namespace twbot
         private VillageData parseVillage(short id)
         {
             VillageData village = new VillageData();
+            BuildingData buildings = new BuildingData();
 
             // query the village overview
             _m.get(viewUrl(id, "overview"));
@@ -219,7 +301,7 @@ namespace twbot
             {   
                 var links = row.Descendants("a");
                 string building = "";
-                int level = 0;
+                short level = 0;
                 foreach (var link in links)
                 { // get href-links from <a>-Tags
                     string url = link.Attributes["href"].Value;
@@ -231,14 +313,18 @@ namespace twbot
                 Match match = Regex.Match(row.InnerText, @" [\u00C0-\u017Fa-zA-Z]* \([a-zA-Z]* ([0-9]{1,2})\)$", RegexOptions.IgnoreCase);
                 if (match.Success)
                 {
-                    level = int.Parse(match.Groups[1].Value);
+                    level = short.Parse(match.Groups[1].Value);
                 }else
                 {
                     continue;
                 }
 
-                Console.WriteLine(building + " => " + level);
+                buildings.set(building, level);
+                Console.WriteLine(building + " => " + buildings.get(building) );
             }
+            village.buildings = buildings;
+
+            Console.WriteLine(buildings.export());
 
 
             return village;
@@ -251,9 +337,8 @@ namespace twbot
         public static string retrieveParam(string url, string param)
         {
             url = url.Replace("&amp;", "&");
-//            Console.WriteLine("Taking apart: "+url);
+
             string query = url.Split(new Char[] {'?'})[1];
-//            Console.WriteLine("Query-part: " + query);
             string[] queries = query.Split(new Char[] {'&'});
             foreach (string arg in queries)
             {
@@ -263,7 +348,6 @@ namespace twbot
             }
 
             return null;
-
         }
     }
 }
