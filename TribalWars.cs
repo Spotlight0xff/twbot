@@ -215,6 +215,7 @@ namespace twbot
 
         // queries a single village and returns its data in the
         // VillageData structure.
+        // TODO: resources, units
         private VillageData parseVillage(short id)
         {
             VillageData village = new VillageData();
