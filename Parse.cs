@@ -27,7 +27,7 @@ namespace twbot
                 foreach (var a in link)
                 {
                     string url = a.Attributes["href"].Value;
-                    string village = TribalWars.retrieveParam(url, "village");
+                    string village = retrieveParam(url, "village");
                     list.Add(short.Parse(village));
                     Console.WriteLine("Village ID: " + village);
                 }
@@ -59,7 +59,7 @@ namespace twbot
                 foreach (var link in links)
                 { // get href-links from <a>-Tags
                     string url = link.Attributes["href"].Value;
-                    building = TribalWars.retrieveParam(url, "screen");
+                    building = retrieveParam(url, "screen");
                 }
 
                 // Match regexp from "Marktplatz (Stufe 5) to 5"
@@ -104,6 +104,29 @@ namespace twbot
 
             return null;
         }
+
+
+
+        // tries to retrieve the parameter specified in 'param' from an URL
+        // example: url = "http://192.168.2.100/game.php?village=42&screen=overview"
+        // retrieveParam(url, "village");
+        // ^ returns "42"
+        public static string retrieveParam(string url, string param)
+        {
+            url = url.Replace("&amp;", "&");
+
+            string query = url.Split(new Char[] {'?'})[1];
+            string[] queries = query.Split(new Char[] {'&'});
+            foreach (string arg in queries)
+            {
+                string[] parts = arg.Split(new Char[] {'='});
+                if (parts[0].Equals(param))
+                    return parts[1];
+            }
+
+            return null;
+        }
+
 
     }
 }
