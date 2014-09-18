@@ -14,143 +14,7 @@ using Newtonsoft.Json;
 namespace twbot
 {
     class TribalWars
-    {
-        public class VillageData
-        {
-            public short Id;
-            public string Name;
-            public short coord_x;
-            public short coord_y;
-            public BuildingData buildings;
-            public UnitsData units;
-
-            public string ToString()
-            {
-                return Newtonsoft.Json.JsonConvert.SerializeObject(this);
-            }
-
-        }
-
-        public class BuildingData
-        {
-            public short building_main;
-            public short building_barracks;
-            public short building_stable;
-            public short building_garage;
-            public short building_snob;
-            public short building_smith;
-            public short building_place;
-            public short building_market;
-            public short building_wood;
-            public short building_stone;
-            public short building_iron;
-            public short building_farm;
-            public short building_storage;
-            public short building_hide;
-            public short building_wall;
-
-
-
-            public void set(string building, short level)
-            {
-                query(building, false, level);
-            }
-
-            public short get(string building)
-            {
-                return query(building, true);
-            }
-
-            public string ToString()
-            {
-                return Newtonsoft.Json.JsonConvert.SerializeObject(this);
-            }
-
-            /*
-             * Method to set or get building levels.
-             * set op to true to get building level and false to set it
-             *  returns the requested building level
-             */
-            private short query(string building, bool op, short level = 0)
-            {
-                switch (building)
-                {
-                    case "main":
-                        return (op ? building_main : building_main=level);
-
-                    case "barracks":
-                        return (op ? building_barracks : building_barracks=level);
-
-                    case "stable":
-                        return (op ? building_stable : building_stable=level);
-
-                    case "garage":
-                        return (op ? building_garage : building_garage=level);
-
-                    case "snob":
-                        return (op ? building_snob : building_snob=level);
-
-                    case "smith":
-                        return (op ? building_smith : building_smith=level);
-
-                    case "place":
-                        return (op ? building_place : building_place=level);
-
-                    case "market":
-                        return (op ? building_market : building_market=level);
-
-                    case "wood":
-                        return (op ? building_wood : building_wood=level);
-
-                    case "stone":
-                        return (op ? building_stone : building_stone=level);
-
-                    case "iron":
-                        return (op ? building_iron : building_iron=level);
-
-                    case "farm":
-                        return (op ? building_farm : building_farm=level);
-
-                    case "storage":
-                        return (op ? building_storage : building_storage=level);
- 
-                    case "hide":
-                        return (op ? building_hide : building_hide=level);
-
-                    case "wall":
-                        return (op ? building_wall : building_wall=level);
-
- 
-
-                }
-
-                return 0;
-            }
-
-        }
-
-        public class UnitsData
-        {
-            public short unit_spear;
-            public short unit_sword;
-            public short unit_axe;
-            public short unit_archer;
-            public short unit_spy;
-            public short unit_light;
-            public short unit_marcher;
-            public short unit_heavy;
-            public short unit_ram;
-            public short unit_catapult;
-            public short unit_snob;
-
-            public string ToString()
-            {
-                return Newtonsoft.Json.JsonConvert.SerializeObject(this);
-            }   
-
-        }
-
-
+    {       
         private Browser _m;
         private string _host;
         private string _user;
@@ -184,6 +48,7 @@ namespace twbot
 
         // logs into the tribalwars server using the provided credentials
         // host has to be provided to the constructor
+        // TODO: check webserver if its twlan
         public bool login(string name, string password)
         {
             // TODO: urlencode
@@ -198,7 +63,7 @@ namespace twbot
             { // expected redirection , login failure otherwise
                 string location = _m.getRedirect();
 
-                Console.WriteLine("Redirect to "+location);
+                Console.WriteLine("[login] Redirect to "+location);
                 
                 string url = Browser.construct(_host, location);
                 status = _m.get(url); // should be ok, some error otherwise
@@ -206,15 +71,15 @@ namespace twbot
                     _loggedIn = true;
                 else
                 {
-                    Console.WriteLine("Request to "+url+" returned "+status);
-                    Console.WriteLine("Therefore not logged in.");
+                    Console.WriteLine("[login] Request to "+url+" returned "+status);
+                    Console.WriteLine("[login] Therefore not logged in.");
                 }
             }else
             {
-                Console.WriteLine("Login request returned " + status + " ( and not 302 as expected)");
+                Console.WriteLine("[login] Login request returned " + status + " ( and not 302 as expected)");
                 if (status == 200)
                 {
-                    Console.WriteLine("Check login credentials.");
+                    Console.WriteLine("[login] Check login credentials.");
                 }
             }
             return _loggedIn;
@@ -224,7 +89,7 @@ namespace twbot
         {
             return Browser.construct(_host, "game.php", "village="+village+"&screen="+screen)+ (addition ?? "");
         }
-
+/*
         public bool getView(View view, int village)
         {
             Console.WriteLine("Change view to {0}", view);
@@ -251,8 +116,69 @@ namespace twbot
             return true;
         }
 
-        // initiates an initial scan to fill the structures at startup.
-        public void init_scan()
+
+        */
+/*
+ *
+ *
+ *  BUILDING PROCESS
+ *
+ *
+ *
+ */
+        // should be started as a thread
+        // does the building of the villages
+        // use pause_build() to pause building and continue_build() to continue
+        //
+        public void doBuild()
+        {
+            Browser mbuild = new Browser();
+            while (!_loggedIn)
+            {
+                Console.WriteLine("[build] Waiting for login...");
+                Thread.Sleep(500);
+            }
+
+            mbuild.setCookies(_m.getCookies());
+            _build = true;
+            while (_build)
+            {
+                foreach(VillageData village in _data)
+                {
+                    int id = village.Id;
+                    Console.WriteLine("[build:{0}] GET overview", village.Id);
+                    mbuild.get(viewUrl(id, "overview")); // get the overview to watch buildings & resources
+                    Parse.parseOverview(mbuild.getContent(), ref village.buildings);
+
+                    Thread.Sleep(_buildingspeed);
+                }
+            }
+        }
+
+        // pauses the building process
+        public void pauseBuild()
+        {
+            _build = false;
+        }
+
+        // continues the building process
+        public void continueBuild()
+        {
+            _build = true;
+        }
+
+
+/*
+ *
+ *
+ *
+ * INIT SCAN
+ *
+ *
+ *
+ */
+       // initiates an initial scan to fill the structures at startup.
+        public void initScan()
         {
             // TODO:
             // * get session token
@@ -272,11 +198,11 @@ namespace twbot
             {
                 _data = new List<VillageData>();
                 string url = _m.getUrl();
-                Console.WriteLine("Current URL: "+url);
+                Console.WriteLine("[initScan] Current URL: "+url);
                 int village_id = int.Parse(retrieveParam(url, "village"));
-                Console.WriteLine("Current village is: " + village_id); 
+                Console.WriteLine("[initScan] Current village is: " + village_id); 
                 _m.get(viewUrl(village_id, "overview_villages", "&mode=prod"));
-                List<short> village_ids = Parse.parseOverview(_m.getContent());
+                List<short> village_ids = Parse.parseVillagesOverview(_m.getContent());
                 foreach (var id in village_ids)
                 {
                     VillageData village = parseVillage(id);
@@ -285,33 +211,6 @@ namespace twbot
                     _data.Add(village);
                 }
             }           
-        }
-
-        // should be started as a thread
-        // does the building of the villages
-        // use pause_build() to pause building and continue_build() to continue
-        //
-        public void do_build()
-        {
-            _build = true;
-            while (_build)
-            {
-
-                Console.WriteLine("building...");
-                Thread.Sleep(200);
-            }
-        }
-
-        // pauses the building process
-        public void pause_build()
-        {
-            _build = false;
-        }
-
-        // continues the building process
-        public void continue_build()
-        {
-            _build = true;
         }
 
         // queries a single village and returns its data in the
@@ -323,41 +222,10 @@ namespace twbot
 
             // query the village overview
             _m.get(viewUrl(id, "overview"));
-
-            HtmlAgilityPack.HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(_m.getContent());
-            if (doc.ParseErrors != null && doc.ParseErrors.Count() > 0 )
-            { // parser error
-                Console.WriteLine("Parse error occured @ parseOverview");
-                doc.Save("failed.html");
-                return village;
-            }
-
-            foreach (var row in doc.DocumentNode.SelectNodes("//table[@class='vis']/tr/td[@width='50%']"))
-            {   
-                var links = row.Descendants("a");
-                string building = "";
-                short level = 0;
-                foreach (var link in links)
-                { // get href-links from <a>-Tags
-                    string url = link.Attributes["href"].Value;
-                    building = retrieveParam(url, "screen");
-                }
-
-                // Match regexp from "Marktplatz (Stufe 5) to 5"
-                // support Umlaute
-                Match match = Regex.Match(row.InnerText, @" [\u00C0-\u017Fa-zA-Z]* \([a-zA-Z]* ([0-9]{1,2})\)$", RegexOptions.IgnoreCase);
-                if (match.Success)
-                {
-                    level = short.Parse(match.Groups[1].Value);
-                }else
-                {
-                    continue;
-                }
-
-                buildings.set(building, level);
-                Console.WriteLine(building + " => " + buildings.get(building) );
-            }
+            string content = _m.getContent();
+            
+            // parse the overview and save it in the struct.
+            Parse.parseOverview(content, ref buildings);
             village.buildings = buildings;
 
 

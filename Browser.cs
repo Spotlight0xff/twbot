@@ -198,6 +198,16 @@ namespace twbot
             return _status;
         }
 
+        public void setCookies(CookieContainer cj)
+        {
+            _cookieJar = cj;
+        }
+
+        public CookieContainer getCookies()
+        {
+            return _cookieJar;
+        }
+
         /*
          * Refreshes the current page, only GET-requests (POST will not be refreshed)
          * returns http status code (just like get() and post()) 

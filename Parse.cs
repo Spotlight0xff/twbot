@@ -2,12 +2,15 @@ using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Text.RegularExpressions;
 namespace twbot
 {
     public class Parse
     {
-        public static List<short> parseOverview(string html)
+
+        // Parses the villages (production) overview to get the village Ids
+        // returns them in a List
+        public static List<short> parseVillagesOverview(string html)
         {
             List<short> list = new List<short>();
             HtmlAgilityPack.HtmlDocument doc = new HtmlDocument();
@@ -33,8 +36,55 @@ namespace twbot
             return list;
         }
 
+
+        public static bool parseOverview(string html, ref BuildingData buildings)
+        {
+            if (buildings == null)
+                buildings = new BuildingData();
+
+            HtmlAgilityPack.HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            if (doc.ParseErrors != null && doc.ParseErrors.Count() > 0 )
+            { // parser error
+                Console.WriteLine("[parseOverview] Parse error occured, check");
+                doc.Save("failed_parseOverview_"+DateTime.Now.ToFileTime()+".html");
+                return false;
+            }
+
+            foreach (var row in doc.DocumentNode.SelectNodes("//table[@class='vis']/tr/td[@width='50%']"))
+            {   
+                var links = row.Descendants("a");
+                string building = "";
+                short level = 0;
+                foreach (var link in links)
+                { // get href-links from <a>-Tags
+                    string url = link.Attributes["href"].Value;
+                    building = TribalWars.retrieveParam(url, "screen");
+                }
+
+                // Match regexp from "Marktplatz (Stufe 5) to 5"
+                // supports Umlaute
+                Match match = Regex.Match(row.InnerText, @" [\u00C0-\u017Fa-zA-Z]* \([a-zA-Z]* ([0-9]{1,2})\)$", RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    level = short.Parse(match.Groups[1].Value);
+                }else
+                {
+                    continue;
+                }
+
+                buildings.set(building, level);
+                Console.WriteLine(building + " => " + buildings.get(building) );
+            }
+            return true;
+        }
+ 
+
+
+        // searches the html for a link with the specific match (in work)
         public static string searchLink(string html, string query)
         { // TODO: TEST!!!
+            throw new System.NotImplementedException();
             HtmlAgilityPack.HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
             if (doc.ParseErrors != null && doc.ParseErrors.Count() > 0)
