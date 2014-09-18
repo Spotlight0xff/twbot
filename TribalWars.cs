@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -16,12 +17,18 @@ namespace twbot
     {
         public class VillageData
         {
-            short Id;
-            string Name;
-            short coord_x;
-            short coord_y;
+            public short Id;
+            public string Name;
+            public short coord_x;
+            public short coord_y;
             public BuildingData buildings;
             public UnitsData units;
+
+            public string ToString()
+            {
+                return Newtonsoft.Json.JsonConvert.SerializeObject(this);
+            }
+
         }
 
         public class BuildingData
@@ -54,74 +61,64 @@ namespace twbot
                 return query(building, true);
             }
 
-            public string export()
+            public string ToString()
             {
                 return Newtonsoft.Json.JsonConvert.SerializeObject(this);
             }
 
+            /*
+             * Method to set or get building levels.
+             * set op to true to get building level and false to set it
+             *  returns the requested building level
+             */
             private short query(string building, bool op, short level = 0)
             {
                 switch (building)
                 {
                     case "main":
                         return (op ? building_main : building_main=level);
-                        break;
 
                     case "barracks":
                         return (op ? building_barracks : building_barracks=level);
-                        break;
 
                     case "stable":
                         return (op ? building_stable : building_stable=level);
-                        break;
 
                     case "garage":
                         return (op ? building_garage : building_garage=level);
-                        break;
 
                     case "snob":
                         return (op ? building_snob : building_snob=level);
-                        break;
 
                     case "smith":
                         return (op ? building_smith : building_smith=level);
-                        break;
 
                     case "place":
                         return (op ? building_place : building_place=level);
-                        break;
 
                     case "market":
                         return (op ? building_market : building_market=level);
-                        break;
 
                     case "wood":
                         return (op ? building_wood : building_wood=level);
-                        break;
 
                     case "stone":
                         return (op ? building_stone : building_stone=level);
-                        break;
 
                     case "iron":
                         return (op ? building_iron : building_iron=level);
-                        break;
 
                     case "farm":
                         return (op ? building_farm : building_farm=level);
-                        break;
 
                     case "storage":
                         return (op ? building_storage : building_storage=level);
-                        break;
  
                     case "hide":
                         return (op ? building_hide : building_hide=level);
-                        break;
 
                     case "wall":
                         return (op ? building_wall : building_wall=level);
-                        break;
 
  
 
@@ -134,17 +131,23 @@ namespace twbot
 
         public class UnitsData
         {
-            short unit_spear;
-            short unit_sword;
-            short unit_axe;
-            short unit_archer;
-            short unit_spy;
-            short unit_light;
-            short unit_marcher;
-            short unit_heavy;
-            short unit_ram;
-            short unit_catapult;
-            short unit_snob;
+            public short unit_spear;
+            public short unit_sword;
+            public short unit_axe;
+            public short unit_archer;
+            public short unit_spy;
+            public short unit_light;
+            public short unit_marcher;
+            public short unit_heavy;
+            public short unit_ram;
+            public short unit_catapult;
+            public short unit_snob;
+
+            public string ToString()
+            {
+                return Newtonsoft.Json.JsonConvert.SerializeObject(this);
+            }   
+
         }
 
 
@@ -153,7 +156,9 @@ namespace twbot
         private string _user;
         private string _password;
         private bool _loggedIn;
-        private List<VillageData> _data;
+        private List<VillageData> _data; // contains data of all villages in a list
+        private volatile bool _build; // controls the building process
+        private volatile int _buildingspeed; // the higher this value is the slower is the building process
 
 
         // TODO: expand and complete
@@ -173,6 +178,8 @@ namespace twbot
             _password = "";
             _loggedIn = false;
             _data = null;
+            _build = true;
+            _buildingspeed = 200;
         }
 
         // logs into the tribalwars server using the provided credentials
@@ -273,9 +280,38 @@ namespace twbot
                 foreach (var id in village_ids)
                 {
                     VillageData village = parseVillage(id);
+                    village.Id = id;
+                    Console.WriteLine(village.ToString());
                     _data.Add(village);
                 }
             }           
+        }
+
+        // should be started as a thread
+        // does the building of the villages
+        // use pause_build() to pause building and continue_build() to continue
+        //
+        public void do_build()
+        {
+            _build = true;
+            while (_build)
+            {
+
+                Console.WriteLine("building...");
+                Thread.Sleep(200);
+            }
+        }
+
+        // pauses the building process
+        public void pause_build()
+        {
+            _build = false;
+        }
+
+        // continues the building process
+        public void continue_build()
+        {
+            _build = true;
         }
 
         // queries a single village and returns its data in the
@@ -324,7 +360,6 @@ namespace twbot
             }
             village.buildings = buildings;
 
-            Console.WriteLine(buildings.export());
 
 
             return village;

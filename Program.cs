@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace twbot
 {
@@ -24,6 +25,7 @@ namespace twbot
         private static void run()
         {
             TribalWars tw = new TribalWars("192.168.2.100");
+            Thread buildThread = new Thread(tw.do_build);
             bool login = tw.login("noob", "3726");
             if (!login)
             {
@@ -31,6 +33,8 @@ namespace twbot
                 return;
             }
             tw.init_scan();
+
+            buildThread.Start();
         }
     }
 }

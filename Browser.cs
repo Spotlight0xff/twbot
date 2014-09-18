@@ -103,7 +103,7 @@ namespace twbot
             catch (Exception e)
             {
                 Console.WriteLine("browser::post() exception: {0}", e.ToString());
-                return 0;
+                throw;
             }
             return post(_url, data);
         }
@@ -124,7 +124,7 @@ namespace twbot
             catch (Exception e)
             {
                 Console.WriteLine("browser::post() exception: {0}", e.ToString());
-                return 0;
+                throw;
             }
 
             // change to POST
@@ -149,7 +149,7 @@ namespace twbot
             } catch (WebException e)
             {
                 Console.WriteLine("browser::post() exception: " + e.Message);
-                return 0;
+                throw;
             }
             
             HttpWebResponse response = null;
@@ -160,7 +160,7 @@ namespace twbot
             catch (WebException e)
             {
                 Console.WriteLine("browser::post() exception: " + e.Message);
-                return 0;
+                throw;
             }
 
             // save statuscode & redirection-urk
