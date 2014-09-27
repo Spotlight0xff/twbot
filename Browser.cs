@@ -3,7 +3,6 @@ using HtmlAgilityPack;
 using System.Net;
 using System.IO;
 using System.Text;
-
 namespace twbot
 {
     class Browser
@@ -48,7 +47,7 @@ namespace twbot
         {
 
             // display URI
-            Console.WriteLine("GET "+uri);
+            // Console.WriteLine("GET "+uri);
 
             HttpWebRequest req = null;
             try
@@ -84,7 +83,7 @@ namespace twbot
             response.Close();
 
             _status = (int)response.StatusCode;
-            Console.WriteLine("==> "+_status);
+            // Console.WriteLine("==> "+_status);
             return _status;
 
         }

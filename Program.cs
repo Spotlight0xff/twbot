@@ -24,9 +24,9 @@ namespace twbot
 
         private static void run()
         {
-            TribalWars tw = new TribalWars("192.168.2.100");
+            TribalWars tw = new TribalWars("192.168.2.102");
             Thread buildThread = new Thread(tw.doBuild);
-            bool login = tw.login("noob", "3726");
+            bool login = tw.login("noob3", "3726");
             if (!login)
             {
                 Console.WriteLine("Unable to login");

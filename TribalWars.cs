@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
@@ -19,6 +20,7 @@ namespace twbot
         private string _host;
         private string _user;
         private string _password;
+        private string _hkey; // hkey is required to perform actions
         private bool _loggedIn;
         private List<VillageData> _data; // contains data of all villages in a list
         private volatile bool _build; // controls the building process
@@ -40,6 +42,7 @@ namespace twbot
             _host = ip;
             _user = "";
             _password = "";
+            _hkey = "";
             _loggedIn = false;
             _data = null;
             _build = true;
@@ -85,39 +88,17 @@ namespace twbot
             return _loggedIn;
         }
 
+        // constructs an URL to build a building (hkey is required to work)
+        private string actionBuild(string building, int village, string hkey)
+        {
+            return Browser.construct(_host, "game.php", "village="+village+"&screen=main&action=build&id="+building+"&h="+hkey);
+        }
+
+
         private string viewUrl(int village, string screen, string addition=null)
         {
             return Browser.construct(_host, "game.php", "village="+village+"&screen="+screen)+ (addition ?? "");
         }
-/*
-        public bool getView(View view, int village)
-        {
-            Console.WriteLine("Change view to {0}", view);
-            string url;
-            switch (view)
-            {
-                case View.MAIN:
-                    url = viewUrl(village, "main");
-                    break;
-
-                case View.OVERVIEW_COMBINED:
-                    url = viewUrl(village, "overview_combined");
-                    break;
-
-                case View.MESSAGES:
-                    url = viewUrl(village, "mail");
-                    break;
-
-                default:
-                    return false;
-            }
-
-            _m.get(url);
-            return true;
-        }
-
-
-        */
 /*
  *
  *
@@ -132,6 +113,7 @@ namespace twbot
         //
         public void doBuild()
         {
+            string build;
             Browser mbuild = new Browser();
             while (!_loggedIn)
             {
@@ -141,18 +123,64 @@ namespace twbot
 
             mbuild.setCookies(_m.getCookies());
             _build = true;
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             while (_build)
             {
                 foreach(VillageData village in _data)
                 {
-                    int id = village.Id;
-                    Console.WriteLine("[build:{0}] GET overview", village.Id);
+                    int id = village.id;
+                    Console.WriteLine("[build:{0}] GET overview", id);
                     mbuild.get(viewUrl(id, "overview")); // get the overview to watch buildings & resources
                     Parse.parseOverview(mbuild.getContent(), ref village.buildings);
 
-                    Thread.Sleep(_buildingspeed);
+                    // decide which building should be built
+                    build = whichBuilding(village.buildings);
+                    if (build != null)
+                    {
+                        string url = actionBuild(build, id, _hkey);
+                        mbuild.get(url);
+                        Console.WriteLine("[build:{0}] build {1}: {2}", id, build, url);
+                    }else
+                    {
+                        stopwatch.Stop();
+                        Console.WriteLine("Time elapsed: {0}",
+                                        stopwatch.Elapsed);
+                        Console.WriteLine("done!");
+                        Console.ReadKey();
+                    }
+
+                    //Thread.Sleep(_buildingspeed);
                 }
             }
+        }
+
+        private string whichBuilding(BuildingData buildings)
+        {
+            using (StreamReader sr = new StreamReader("build.json"))
+            {
+                int level = 1;
+                String json = sr.ReadToEnd();
+//                Console.WriteLine(json);
+
+                List<Dictionary<string,short>> values = JsonConvert.DeserializeObject<List<Dictionary<string, short>>>(json);
+                foreach (Dictionary<string, short> val in values)
+                {
+                    foreach (KeyValuePair<string, short> pair in val)
+                    {
+                        if (buildings.get(pair.Key) < pair.Value)
+                        {
+                            Console.WriteLine("[{0}] is: {1}, should: {2}", pair.Key, buildings.get(pair.Key), pair.Value);
+                            Console.WriteLine("Village is in stage "+level.ToString());
+                            return pair.Key;
+                        }
+//                        Console.WriteLine("{0}, {1}", pair.Key, pair.Value);
+                    }
+                    level ++;
+//                    Console.WriteLine();
+                }
+            }
+            return null;
         }
 
         // pauses the building process
@@ -181,7 +209,7 @@ namespace twbot
         public void initScan()
         {
             // TODO:
-            // * get session token
+            // * get session token (hkey)
             // * get all villages info (buildings, troops, resources?)
             // * mails (unimportant)
             // * get point + rank
@@ -202,11 +230,16 @@ namespace twbot
                 int village_id = int.Parse(Parse.retrieveParam(url, "village"));
                 Console.WriteLine("[initScan] Current village is: " + village_id); 
                 _m.get(viewUrl(village_id, "overview_villages", "&mode=prod"));
-                List<short> village_ids = Parse.parseVillagesOverview(_m.getContent());
+                string content = _m.getContent();
+                _hkey = Parse.parseHkey(content); // get current hkey and save globally
+                if (_hkey == null)
+                    throw new Exception();
+                Console.WriteLine("hkey: "+_hkey);
+                List<short> village_ids = Parse.parseVillagesOverview(content);
                 foreach (var id in village_ids)
                 {
                     VillageData village = parseVillage(id);
-                    village.Id = id;
+                    village.id = id;
                     Console.WriteLine(village.ToString());
                     _data.Add(village);
                 }

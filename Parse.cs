@@ -8,6 +8,34 @@ namespace twbot
     public class Parse
     {
 
+        // tries to parse the hkey on a html side
+        // should work everywhere, as we scan for the logout-link which contains it
+        // and is on every page
+        public static string parseHkey(string html)
+        {
+            string hkey = null;
+            HtmlAgilityPack.HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            if (!handleError(doc, "parseHkey"))
+                return null;
+
+
+            foreach (HtmlNode node in doc.DocumentNode.SelectNodes("//a"))
+            {
+                string href = node.GetAttributeValue("href", null);
+                string action = retrieveParam(href, "action");
+                if (action != null)
+                {
+                    if (action.Equals("logout"))
+                    {
+                        hkey = retrieveParam(href, "h");
+                    }
+                }
+            }
+            return hkey;
+        }
+
+
         // Parses the villages (production) overview to get the village Ids
         // returns them in a List
         public static List<short> parseVillagesOverview(string html)
@@ -15,12 +43,9 @@ namespace twbot
             List<short> list = new List<short>();
             HtmlAgilityPack.HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
-            if (doc.ParseErrors != null && doc.ParseErrors.Count() > 0 )
-            {
-                Console.WriteLine("Parse error occured @ parseOverview");
-                doc.Save("failed.html");
+
+            if (!handleError(doc, "parseVillagesOverview"))
                 return null;
-            }
             foreach (var node in doc.DocumentNode.SelectNodes("//table[@class='vis']/tr"))
             {
                 var link = node.Descendants("a").Where(x => x.Attributes.Contains("href"));
@@ -29,7 +54,6 @@ namespace twbot
                     string url = a.Attributes["href"].Value;
                     string village = retrieveParam(url, "village");
                     list.Add(short.Parse(village));
-                    Console.WriteLine("Village ID: " + village);
                 }
             }
 
@@ -44,13 +68,9 @@ namespace twbot
 
             HtmlAgilityPack.HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
-            if (doc.ParseErrors != null && doc.ParseErrors.Count() > 0 )
-            { // parser error
-                Console.WriteLine("[parseOverview] Parse error occured, check");
-                doc.Save("failed_parseOverview_"+DateTime.Now.ToFileTime()+".html");
-                return false;
-            }
-
+           if (!handleError(doc, "parseOverview"))
+                    return false;
+           doc.Save("parseOverview.html");
             foreach (var row in doc.DocumentNode.SelectNodes("//table[@class='vis']/tr/td[@width='50%']"))
             {   
                 var links = row.Descendants("a");
@@ -74,7 +94,6 @@ namespace twbot
                 }
 
                 buildings.set(building, level);
-                Console.WriteLine(building + " => " + buildings.get(building) );
             }
             return true;
         }
@@ -87,12 +106,9 @@ namespace twbot
             throw new System.NotImplementedException();
             HtmlAgilityPack.HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
-            if (doc.ParseErrors != null && doc.ParseErrors.Count() > 0)
-            {
-                Console.WriteLine("Parse error occured @ parseOverview");
-                doc.Save("failed.html");
+
+            if (!handleError(doc, "searchLink"))
                 return null;
-            }
 
             IEnumerable<HtmlNode> links = doc.DocumentNode.Descendants("a").Where(x => x.Attributes.Contains("href"));
             foreach (var link in links)
@@ -113,9 +129,13 @@ namespace twbot
         // ^ returns "42"
         public static string retrieveParam(string url, string param)
         {
+            // Console.WriteLine("Process: "+url);
             url = url.Replace("&amp;", "&");
-
-            string query = url.Split(new Char[] {'?'})[1];
+            string[] split_query = url.Split(new Char[] {'?'});
+            if (split_query.Length < 2)
+                return null;
+            string query = split_query[1];
+            // Console.WriteLine("query: "+query);
             string[] queries = query.Split(new Char[] {'&'});
             foreach (string arg in queries)
             {
@@ -127,6 +147,18 @@ namespace twbot
             return null;
         }
 
+        // handles parsing errors and saves the affected htmlcode in a file
+        // returns false, when an error has occured
+        private static bool handleError(HtmlDocument doc, string func)
+        {
+            if (doc.ParseErrors != null && doc.ParseErrors.Count() > 0)
+            {
+                Console.WriteLine("Parse error occured @ parseOverview");
+                doc.Save("failed_"+func+".html");
+                return false;
+            }
+            return true;
+        }
 
     }
 }
