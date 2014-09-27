@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+
 namespace twbot
 {
     public class Parse
@@ -60,19 +61,22 @@ namespace twbot
             return list;
         }
 
-
-        public static bool parseOverview(string html, ref BuildingData buildings)
+        // parse the village overview
+        // cur_building is true when the 
+        public static bool parseOverview(string html, ref BuildingData buildings, ref bool queue)
         {
+
             if (buildings == null)
                 buildings = new BuildingData();
 
             HtmlAgilityPack.HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
-           if (!handleError(doc, "parseOverview"))
+            if (!handleError(doc, "parseOverview"))
                     return false;
-           doc.Save("parseOverview.html");
+
+
             foreach (var row in doc.DocumentNode.SelectNodes("//table[@class='vis']/tr/td[@width='50%']"))
-            {   
+            {
                 var links = row.Descendants("a");
                 string building = "";
                 short level = 0;
@@ -92,6 +96,26 @@ namespace twbot
                 {
                     continue;
                 }
+
+                if (building.Equals("main"))
+                { // check if the village is building something
+                    var node = row.ParentNode;
+                  //  Console.WriteLine("\"" + node.InnerHtml +  "\"");
+
+                    var secondNode = row.ParentNode.SelectNodes("td")[1];
+                    if (String.IsNullOrWhiteSpace(secondNode.InnerHtml))
+                    {
+                        queue = false;
+                    }else
+                    {
+                        queue = true;
+                    }
+/*                    foreach (var child in row.ParentNode.SelectNodes("td"))
+                    {
+                        Console.WriteLine(child.InnerHtml);
+                        Console.WriteLine("---");
+                    }
+  */              }
 
                 buildings.set(building, level);
             }

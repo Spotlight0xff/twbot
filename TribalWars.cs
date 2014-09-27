@@ -113,7 +113,8 @@ namespace twbot
         //
         public void doBuild()
         {
-            string build;
+            string build = "";
+            bool queue = false;
             Browser mbuild = new Browser();
             while (!_loggedIn)
             {
@@ -130,10 +131,13 @@ namespace twbot
                 foreach(VillageData village in _data)
                 {
                     int id = village.id;
-                    Console.WriteLine("[build:{0}] GET overview", id);
+                    Console.Write(".");
+//                    Console.WriteLine("[build:{0}] GET overview", id);
                     mbuild.get(viewUrl(id, "overview")); // get the overview to watch buildings & resources
-                    Parse.parseOverview(mbuild.getContent(), ref village.buildings);
-
+                    Parse.parseOverview(mbuild.getContent(), ref village.buildings, ref queue);
+                    if (queue == true)
+                        continue;
+                    Console.WriteLine();
                     // decide which building should be built
                     build = whichBuilding(village.buildings);
                     if (build != null)
@@ -229,12 +233,15 @@ namespace twbot
                 Console.WriteLine("[initScan] Current URL: "+url);
                 int village_id = int.Parse(Parse.retrieveParam(url, "village"));
                 Console.WriteLine("[initScan] Current village is: " + village_id); 
+                
                 _m.get(viewUrl(village_id, "overview_villages", "&mode=prod"));
                 string content = _m.getContent();
+
                 _hkey = Parse.parseHkey(content); // get current hkey and save globally
                 if (_hkey == null)
                     throw new Exception();
                 Console.WriteLine("hkey: "+_hkey);
+                
                 List<short> village_ids = Parse.parseVillagesOverview(content);
                 foreach (var id in village_ids)
                 {
@@ -259,7 +266,8 @@ namespace twbot
             string content = _m.getContent();
             
             // parse the overview and save it in the struct.
-            Parse.parseOverview(content, ref buildings);
+            bool queue = false;
+            Parse.parseOverview(content, ref buildings, ref queue);
             village.buildings = buildings;
 
 
