@@ -15,7 +15,8 @@ using Newtonsoft.Json;
 namespace twbot
 {
     class TribalWars
-    {       
+    {
+        private bool _debug;
         private Browser _m;
         private string _host;
         private string _user;
@@ -49,6 +50,7 @@ namespace twbot
             _build = true;
             _buildingspeed = 200;
             _research = true;
+            _debug = false;
         }
 
         // logs into the tribalwars server using the provided credentials
@@ -258,8 +260,14 @@ namespace twbot
                     int status = mres.get(url);
                     if (status != 302)
                     { // some error must've occured
-                        Console.WriteLine("[research:{0}] Could not research {1} (see id_{0}_research_error.html)", id, research);
-                        mres.save("id_"+id+"_research_error.html");
+                        if (_debug)
+                        {
+                            Console.WriteLine("[research:{0}] Could not research {1} (see id_{0}_research_error.html)", id, research);
+                            mres.save("id_"+id+"_research_error.html");
+                        }else
+                        {
+                            Console.WriteLine("[research:{0}] could not research, probably not enough resources");
+                        }
                     }
                     
                     //Thread.Sleep(_researchspeed); // not implemented yet!
