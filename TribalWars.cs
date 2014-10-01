@@ -25,6 +25,7 @@ namespace twbot
         private List<VillageData> _data; // contains data of all villages in a list
         private volatile bool _build; // controls the building process
         private volatile int _buildingspeed; // the higher this value is the slower is the building process
+        private volatile bool _research;
 
 
         // TODO: expand and complete
@@ -47,6 +48,7 @@ namespace twbot
             _data = null;
             _build = true;
             _buildingspeed = 200;
+            _research = true;
         }
 
         // logs into the tribalwars server using the provided credentials
@@ -110,7 +112,6 @@ namespace twbot
         // should be started as a thread
         // does the building of the villages
         // use pause_build() to pause building and continue_build() to continue
-        //
         public void doBuild()
         {
             string build = "";
@@ -131,22 +132,23 @@ namespace twbot
                 foreach(VillageData village in _data)
                 {
                     int id = village.id;
-//                    Console.Write(".");
 //                    Console.WriteLine("[build:{0}] GET overview", id);
                     mbuild.get(viewUrl(id, "overview")); // get the overview to watch buildings & resources
                     Parse.parseOverview(mbuild.getContent(), ref village.buildings, ref queue);
                     if (queue == true)
                         continue;
- //                   Console.WriteLine();
                     // decide which building should be built
-                    build = whichBuilding(village.buildings);
+                    lock (village.buildings)
+                    {
+                        build = whichBuilding(ref village.buildings);
+                    }
 
                     
                     if (build != null)
                     {
                         string url = actionBuild(build, id, _hkey);
                         mbuild.get(url);
-                        Console.WriteLine("[build:{0}] build {1}: {2}", id, build, url);
+                        Console.WriteLine("[build: {0} @ stage {3}] build {1} -> {2}", id, build, village.buildings.get(build)+1, village.buildings.level);
                     }else
                     {
                         /*
@@ -163,7 +165,7 @@ namespace twbot
             }
         }
 
-        private string whichBuilding(BuildingData buildings)
+        private string whichBuilding(ref BuildingData buildings)
         {
             using (StreamReader sr = new StreamReader("build.json"))
             {
@@ -178,8 +180,9 @@ namespace twbot
                     {
                         if (buildings.get(pair.Key) < pair.Value)
                         {
-                            Console.WriteLine("[{0}] is: {1}, should: {2}", pair.Key, buildings.get(pair.Key), pair.Value);
-                            Console.WriteLine("Village is in stage "+level.ToString());
+                            buildings.level = level;
+ //                           Console.WriteLine("[{0}] is: {1}, should: {2}", pair.Key, buildings.get(pair.Key), pair.Value);
+ //                           Console.WriteLine("Village is in stage "+level.ToString());
                             return pair.Key;
                         }
 //                        Console.WriteLine("{0}, {1}", pair.Key, pair.Value);
@@ -202,6 +205,80 @@ namespace twbot
         {
             _build = true;
         }
+
+
+/*
+ *
+ *
+ * RESEARCH PROCESS
+ *
+ *
+ */
+
+        // should be started as a thread
+        // handles the research in every village
+        // use pause_research() to pause researching and continue_research() to continue
+        public void doResearch()
+        {
+            string research = "";
+            bool queue = false;
+            string content;
+            Browser mres = new Browser();
+            while (!_loggedIn)
+            {
+                Console.WriteLine("[research] Waiting for login...");
+                Thread.Sleep(500);
+            }
+
+            mres.setCookies(_m.getCookies());
+            _research = true;
+            // Stopwatch stopwatch = new Stopwatch();
+            // stopwatch.Start();
+            while (_research)
+            {
+                foreach(VillageData village in _data)
+                {
+                    int id = village.id;
+                    mres.get(viewUrl(id, "smith")); // get the overview to get research levels
+                    content = mres.getContent();
+                    // TODO!
+                    //Parse.parseSmithOverview(mbuild.getContent(), ref village.research, ref queue);
+                    //if (queue == true)
+                    //    continue; // skip if there is already something being researched
+                    
+                    // dirty method: search for links to research
+                    string path = Parse.searchLink(content, "action=research&");
+                    if (path == null)
+                    { // no link found
+                        continue;
+                    }
+                    research = Parse.retrieveParam(path, "id");
+                    Console.WriteLine("[research:{0}] do  "+research, id);
+                    string url = Browser.construct(_host, path);
+                    int status = mres.get(url);
+                    if (status != 302)
+                    { // some error must've occured
+                        Console.WriteLine("[research:{0}] Could not research {1} (see id_{0}_research_error.html)", id, research);
+                        mres.save("id_"+id+"_research_error.html");
+                    }
+                    
+                    //Thread.Sleep(_researchspeed); // not implemented yet!
+                }
+            }
+        }
+
+       // pauses the researching process
+        public void pauseResearch()
+        {
+            _research = false;
+        }
+
+        // continues the researching process
+        public void continueResearch()
+        {
+            _research = true;
+        }
+
 
 
 /*
