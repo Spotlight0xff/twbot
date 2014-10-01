@@ -47,7 +47,7 @@ namespace twbot
         {
 
             // display URI
-            // Console.WriteLine("GET "+uri);
+            Console.WriteLine("GET "+uri);
 
             HttpWebRequest req = null;
             try
@@ -62,6 +62,7 @@ namespace twbot
 
             // use global cookie container
             req.CookieContainer = _cookieJar;
+            req.AllowAutoRedirect = false;
 
             HttpWebResponse response = null;
             try
@@ -253,6 +254,7 @@ namespace twbot
             str_build.Append(host);
             if (path != null)
             {
+                path = path.Replace("&amp;", "&");
                 str_build.AppendFormat("/{0}", path);
                 if (query != null)
                 {
