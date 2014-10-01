@@ -35,6 +35,7 @@ namespace twbot
         public short building_storage;
         public short building_hide;
         public short building_wall;
+        public int level;
 
 
 
