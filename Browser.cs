@@ -47,7 +47,7 @@ namespace twbot
         {
 
             // display URI
-            Console.WriteLine("GET "+uri);
+            // Console.WriteLine("GET "+uri);
 
             HttpWebRequest req = null;
             try
