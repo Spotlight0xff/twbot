@@ -126,8 +126,7 @@ namespace twbot
 
         // searches the html for a link with the specific match (in work)
         public static string searchLink(string html, string query)
-        { // TODO: TEST!!!
-            throw new System.NotImplementedException();
+        { 
             HtmlAgilityPack.HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
 
