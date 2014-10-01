@@ -26,7 +26,8 @@ namespace twbot
         {
             TribalWars tw = new TribalWars("192.168.2.102");
             Thread buildThread = new Thread(tw.doBuild);
-            bool login = tw.login("noob5", "3726");
+            Thread researchThread = new Thread(tw.doResearch);
+            bool login = tw.login("noob1", "3726");
             if (!login)
             {
                 Console.WriteLine("Unable to login");
@@ -35,6 +36,7 @@ namespace twbot
             tw.initScan();
 
             buildThread.Start();
+            researchThread.Start();
         }
     }
 }
