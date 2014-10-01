@@ -235,6 +235,16 @@ namespace twbot
             return _redirect;
         }
 
+        // write content into a file
+        public void save(string file)
+        {
+            if (_content != null)
+            {
+                System.IO.File.WriteAllText(@file, _content);
+            }
+        }
+            
+
         // constructs a url with the provided arguments
         public static string construct(string host, string path = null, string query = null, string fragment = null)
         {
