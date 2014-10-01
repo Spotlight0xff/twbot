@@ -4,8 +4,8 @@ namespace twbot
 {
     public class VillageData
     {
-        public short Id;
-        public string Name;
+        public short id;
+        public string name;
         public short coord_x;
         public short coord_y;
         public BuildingData buildings;
