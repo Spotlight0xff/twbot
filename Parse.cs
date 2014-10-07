@@ -183,5 +183,19 @@ namespace twbot
             return true;
         }
 
+        // constructs an URL to build a building (hkey is required to work)
+        public static string actionBuild(string host, string building, int village, string hkey)
+        {
+            return Browser.construct(host, "game.php", "village="+village+"&screen=main&action=build&id="+building+"&h="+hkey);
+        }
+
+
+        public static string viewUrl(string host, int village, string screen, string addition=null)
+        {
+            return Browser.construct(host, "game.php", "village="+village+"&screen="+screen)+ (addition ?? "");
+        }
+
+
+
     }
 }

@@ -24,9 +24,9 @@ namespace twbot
         private string _hkey; // hkey is required to perform actions
         private bool _loggedIn;
         private List<VillageData> _data; // contains data of all villages in a list
-        private volatile bool _build; // controls the building process
         private volatile int _buildingspeed; // the higher this value is the slower is the building process
         private volatile bool _research;
+        private Building _building;
 
 
         // TODO: expand and complete
@@ -47,10 +47,11 @@ namespace twbot
             _hkey = "";
             _loggedIn = false;
             _data = null;
-            _build = true;
             _buildingspeed = 200;
             _research = true;
             _debug = false;
+            _building = new Building(_host);
+
         }
 
         // logs into the tribalwars server using the provided credentials
@@ -92,123 +93,13 @@ namespace twbot
             return _loggedIn;
         }
 
-        // constructs an URL to build a building (hkey is required to work)
-        private string actionBuild(string building, int village, string hkey)
+        public void startBuilding()
         {
-            return Browser.construct(_host, "game.php", "village="+village+"&screen=main&action=build&id="+building+"&h="+hkey);
-        }
-
-
-        private string viewUrl(int village, string screen, string addition=null)
-        {
-            return Browser.construct(_host, "game.php", "village="+village+"&screen="+screen)+ (addition ?? "");
-        }
-/*
- *
- *
- *  BUILDING PROCESS
- *
- *
- *
- */
-        // should be started as a thread
-        // does the building of the villages
-        // use pause_build() to pause building and continue_build() to continue
-        public void doBuild()
-        {
-            string build = "";
-            bool queue = false;
-            Browser mbuild = new Browser();
-            while (!_loggedIn)
-            {
-                Console.WriteLine("[build] Waiting for login...");
-                Thread.Sleep(500);
-            }
-
-            mbuild.setCookies(_m.getCookies());
-            _build = true;
-            // Stopwatch stopwatch = new Stopwatch();
-            // stopwatch.Start();
-            while (_build)
-            {
-                foreach(VillageData village in _data)
-                {
-                    int id = village.id;
-//                    Console.WriteLine("[build:{0}] GET overview", id);
-                    mbuild.get(viewUrl(id, "overview")); // get the overview to watch buildings & resources
-                    Parse.parseOverview(mbuild.getContent(), ref village.buildings, ref queue);
-                    if (queue == true)
-                        continue;
-                    // decide which building should be built
-                    lock (village.buildings)
-                    {
-                        build = whichBuilding(ref village.buildings);
-                    }
-
-                    
-                    if (build != null)
-                    {
-                        string url = actionBuild(build, id, _hkey);
-                        mbuild.get(url);
-                        Console.WriteLine("[build: {0} @ stage {3}] build {1} -> {2}", id, build, village.buildings.get(build)+1, village.buildings.level);
-                    }else
-                    {
-                        /*
-                        stopwatch.Stop();
-                        Console.WriteLine("Time elapsed: {0}",
-                                        stopwatch.Elapsed);
-                        Console.WriteLine("done!");
-                        Console.ReadKey();
-                        */
-                    }
-
-                    //Thread.Sleep(_buildingspeed);
-                }
-            }
-        }
-
-        private string whichBuilding(ref BuildingData buildings)
-        {
-            using (StreamReader sr = new StreamReader("build.json"))
-            {
-                int level = 1;
-                String json = sr.ReadToEnd();
-//                Console.WriteLine(json);
-
-                List<Dictionary<string,short>> values = JsonConvert.DeserializeObject<List<Dictionary<string, short>>>(json);
-                foreach (Dictionary<string, short> val in values)
-                {
-                    foreach (KeyValuePair<string, short> pair in val)
-                    {
-                        if (buildings.get(pair.Key) < pair.Value)
-                        {
-                            buildings.level = level;
- //                           Console.WriteLine("[{0}] is: {1}, should: {2}", pair.Key, buildings.get(pair.Key), pair.Value);
- //                           Console.WriteLine("Village is in stage "+level.ToString());
-                            return pair.Key;
-                        }
-//                        Console.WriteLine("{0}, {1}", pair.Key, pair.Value);
-                    }
-                    level ++;
-//                    Console.WriteLine();
-                }
-            }
-            return null;
-        }
-
-        // pauses the building process
-        public void pauseBuild()
-        {
-            _build = false;
-        }
-
-        // continues the building process
-        public void continueBuild()
-        {
-            _build = true;
-        }
-
-
+            _building.setCookies(_m.getCookies());
+            _building.setHKey(_hkey);
+            _building.updateData(ref _data);
+            _building.Start();
+       }
 /*
  *
  *
@@ -241,7 +132,7 @@ namespace twbot
                 foreach(VillageData village in _data)
                 {
                     int id = village.id;
-                    mres.get(viewUrl(id, "smith")); // get the overview to get research levels
+                    mres.get(Parse.viewUrl(_host, id, "smith")); // get the overview to get research levels
                     content = mres.getContent();
                     // TODO!
                     //Parse.parseSmithOverview(mbuild.getContent(), ref village.research, ref queue);
@@ -323,7 +214,7 @@ namespace twbot
                 int village_id = int.Parse(Parse.retrieveParam(url, "village"));
                 Console.WriteLine("[initScan] Current village is: " + village_id); 
                 
-                _m.get(viewUrl(village_id, "overview_villages", "&mode=prod"));
+                _m.get(Parse.viewUrl(_host, village_id, "overview_villages", "&mode=prod"));
                 string content = _m.getContent();
 
                 _hkey = Parse.parseHkey(content); // get current hkey and save globally
@@ -351,7 +242,7 @@ namespace twbot
             BuildingData buildings = new BuildingData();
 
             // query the village overview
-            _m.get(viewUrl(id, "overview"));
+            _m.get(Parse.viewUrl(_host, id, "overview"));
             string content = _m.getContent();
             
             // parse the overview and save it in the struct.
