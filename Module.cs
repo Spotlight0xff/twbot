@@ -54,12 +54,18 @@ namespace twbot
         public virtual void doWork()
         {}
 
-        public virtual void pauseWork()
-        {}
+        // pauses the process
+        public void pauseWork()
+        {
+            _active = false;
+        }
 
-        public virtual void continueWork()
-        {}
-
+        // resumes the process
+        public void resumeWork()
+        {
+            _active = true;
+        }
+ 
         public void Start()
         {
             Thread workThread = new Thread(doWork);

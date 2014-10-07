@@ -53,16 +53,5 @@ namespace twbot
             }
         }
 
-       // pauses the researching process
-        public override void pauseWork()
-        {
-            _active = false;
-        }
-
-        // continues the researching process
-        public override void continueWork()
-        {
-            _active = true;
-        }
     }
 }

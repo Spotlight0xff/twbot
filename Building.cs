@@ -76,16 +76,5 @@ namespace twbot
             return null;
         }
 
-        // pauses the building process
-        public void pauseWork()
-        {
-            _active = false;
-        }
-
-        // continues the building process
-        public void continueWork()
-        {
-            _active = true;
-        }
-    }
+   }
 }
