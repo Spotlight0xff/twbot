@@ -24,8 +24,7 @@ namespace twbot
         private string _hkey; // hkey is required to perform actions
         private bool _loggedIn;
         private List<VillageData> _data; // contains data of all villages in a list
-        private volatile int _buildingspeed; // the higher this value is the slower is the building process
-        private volatile bool _research;
+        private Research _research;
         private Building _building;
 
 
@@ -47,10 +46,8 @@ namespace twbot
             _hkey = "";
             _loggedIn = false;
             _data = null;
-            _buildingspeed = 200;
-            _research = true;
-            _debug = false;
-            _building = new Building(_host);
+            _building = new Building();
+            _research = new Research();
 
         }
 
@@ -98,8 +95,19 @@ namespace twbot
             _building.setCookies(_m.getCookies());
             _building.setHKey(_hkey);
             _building.updateData(ref _data);
+            _building.setHost(_host);
             _building.Start();
-       }
+        }
+
+        public void startResearch()
+        {
+            _research.setCookies(_m.getCookies());
+            _research.setHKey(_hkey);
+            _research.updateData(ref _data);
+            _research.setHost(_host);
+            _research.Start();
+        }
+
 /*
  *
  *
@@ -107,76 +115,6 @@ namespace twbot
  *
  *
  */
-
-        // should be started as a thread
-        // handles the research in every village
-        // use pause_research() to pause researching and continue_research() to continue
-        public void doResearch()
-        {
-            string research = "";
-            bool queue = false;
-            string content;
-            Browser mres = new Browser();
-            while (!_loggedIn)
-            {
-                Console.WriteLine("[research] Waiting for login...");
-                Thread.Sleep(500);
-            }
-
-            mres.setCookies(_m.getCookies());
-            _research = true;
-            // Stopwatch stopwatch = new Stopwatch();
-            // stopwatch.Start();
-            while (_research)
-            {
-                foreach(VillageData village in _data)
-                {
-                    int id = village.id;
-                    mres.get(Parse.viewUrl(_host, id, "smith")); // get the overview to get research levels
-                    content = mres.getContent();
-                    // TODO!
-                    //Parse.parseSmithOverview(mbuild.getContent(), ref village.research, ref queue);
-                    //if (queue == true)
-                    //    continue; // skip if there is already something being researched
-                    
-                    // dirty method: search for links to research
-                    string path = Parse.searchLink(content, "action=research&");
-                    if (path == null)
-                    { // no link found
-                        continue;
-                    }
-                    research = Parse.retrieveParam(path, "id");
-                    Console.WriteLine("[research:{0}] do  "+research, id);
-                    string url = Browser.construct(_host, path);
-                    int status = mres.get(url);
-                    if (status != 302)
-                    { // some error must've occured
-                        if (_debug)
-                        {
-                            Console.WriteLine("[research:{0}] Could not research {1} (see id_{0}_research_error.html)", id, research);
-                            mres.save("id_"+id+"_research_error.html");
-                        }else
-                        {
-                            Console.WriteLine("[research:{0}] could not research, probably not enough resources");
-                        }
-                    }
-                    
-                    //Thread.Sleep(_researchspeed); // not implemented yet!
-                }
-            }
-        }
-
-       // pauses the researching process
-        public void pauseResearch()
-        {
-            _research = false;
-        }
-
-        // continues the researching process
-        public void continueResearch()
-        {
-            _research = true;
-        }
 
 
 

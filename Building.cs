@@ -8,64 +8,25 @@ using Newtonsoft.Json;
 
 namespace twbot
 {
-    class Building
+    class Building : Module
     {
-        private Browser _mbuild;
-        private bool _build;
-        private List<VillageData> _data;
-        private string _hkey;
-        private string _host;
-
-        public Building(string host)
-        {
-            _data = null;
-            _build = false;
-            _mbuild = new Browser();
-            _hkey = null;
-            _host = host;
-        }
-
-        public void updateData(ref List<VillageData> data)
-        {
-            _data = data;
-            Console.WriteLine("Data got updated!");
-        }
-
-
-        public void setCookies(CookieContainer cookies)
-        {
-            _mbuild.setCookies(cookies);
-            Console.WriteLine("Cookies got set.");
-        }
-
-        public void setHKey(string hkey)
-        {
-            Console.WriteLine("hkey got set/updated");
-            _hkey = hkey;
-        }
-
-        public void Start()
-        {
-            Thread buildThread = new Thread(doBuild);
-            buildThread.Start();
-        }
 
         // should be started as a thread
         // does the building of the villages
         // use pause_build() to pause building and continue_build() to continue
-        public void doBuild()
+        public override void doWork()
         {
             string build = "";
             bool queue = false;
 
-            _build = true;
-            while (_build)
+            _active = true;
+            while (_active)
             {
                 foreach(VillageData village in _data)
                 {
                     int id = village.id;
-                    _mbuild.get(Parse.viewUrl(_host, id, "overview")); // get the overview to watch buildings & resources
-                    Parse.parseOverview(_mbuild.getContent(), ref village.buildings, ref queue);
+                    _browser.get(Parse.viewUrl(_host, id, "overview")); // get the overview to watch buildings & resources
+                    Parse.parseOverview(_browser.getContent(), ref village.buildings, ref queue);
                     if (queue == true)
                         continue;
                     // decide which building should be built
@@ -78,7 +39,7 @@ namespace twbot
                     if (build != null)
                     {
                         string url = Parse.actionBuild(_host, build, id, _hkey);
-                        _mbuild.get(url);
+                        _browser.get(url);
                         Console.WriteLine("[build: {0} @ stage {3}] build {1} -> {2}", id, build, village.buildings.get(build)+1, village.buildings.level);
                     }
                     //Thread.Sleep(_buildingspeed);
@@ -116,15 +77,15 @@ namespace twbot
         }
 
         // pauses the building process
-        public void pauseBuild()
+        public void pauseWork()
         {
-            _build = false;
+            _active = false;
         }
 
         // continues the building process
-        public void continueBuild()
+        public void continueWork()
         {
-            _build = true;
+            _active = true;
         }
     }
 }

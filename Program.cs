@@ -34,8 +34,7 @@ namespace twbot
             }
             tw.initScan();
             tw.startBuilding();
- 
-            //researchThread.Start();
+            tw.startResearch();
         }
     }
 }

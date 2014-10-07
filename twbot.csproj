@@ -36,6 +36,8 @@
     <Compile Include="Parse.cs" />
     <Compile Include="Struct.cs" />
     <Compile Include="Building.cs" />
+    <Compile Include="Research.cs" />
+    <Compile Include="Module.cs" />
   </ItemGroup>
   <ItemGroup>
   <Reference Include="HtmlAgilityPack">
