@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
-
 namespace twbot
 {
     class Program
@@ -24,8 +23,9 @@ namespace twbot
 
         private static void run()
         {
-            TribalWars tw = new TribalWars("192.168.2.102");
-            Thread buildThread = new Thread(tw.doBuild);
+            TribalWars tw = new TribalWars("127.0.0.1");
+            Building building = new Building();
+            Thread buildThread = new Thread(building.doBuild);
             Thread researchThread = new Thread(tw.doResearch);
             bool login = tw.login("noob1", "3726");
             if (!login)
@@ -33,9 +33,8 @@ namespace twbot
                 Console.WriteLine("Unable to login");
                 return;
             }
-            tw.initScan();
-
-            buildThread.Start();
+            tw.initScan(); 
+            buildThread.Start(tw._m.getCookies());
             researchThread.Start();
         }
     }

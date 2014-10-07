@@ -35,6 +35,7 @@
     <Compile Include="TribalWars.cs" />
     <Compile Include="Parse.cs" />
     <Compile Include="Struct.cs" />
+    <Compile Include="Building.cs" />
   </ItemGroup>
   <ItemGroup>
   <Reference Include="HtmlAgilityPack">

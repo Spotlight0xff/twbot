@@ -3,9 +3,10 @@ using HtmlAgilityPack;
 using System.Net;
 using System.IO;
 using System.Text;
+
 namespace twbot
 {
-    class Browser
+    public class Browser
     {
         private Uri _url;
         private string _content;
@@ -14,6 +15,10 @@ namespace twbot
         private string _redirect;
         private string _useragent;
 
+        /*
+         * constructor, declare initial global variables
+         *
+         */
         public Browser()
         {
             _cookieJar = new CookieContainer();

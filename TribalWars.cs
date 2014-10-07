@@ -14,10 +14,10 @@ using Newtonsoft.Json;
 
 namespace twbot
 {
-    class TribalWars
+    public class TribalWars
     {
         private bool _debug;
-        private Browser _m;
+        public Browser _m;
         private string _host;
         private string _user;
         private string _password;
@@ -103,111 +103,6 @@ namespace twbot
         {
             return Browser.construct(_host, "game.php", "village="+village+"&screen="+screen)+ (addition ?? "");
         }
-/*
- *
- *
- *  BUILDING PROCESS
- *
- *
- *
- */
-        // should be started as a thread
-        // does the building of the villages
-        // use pause_build() to pause building and continue_build() to continue
-        public void doBuild()
-        {
-            string build = "";
-            bool queue = false;
-            Browser mbuild = new Browser();
-            while (!_loggedIn)
-            {
-                Console.WriteLine("[build] Waiting for login...");
-                Thread.Sleep(500);
-            }
-
-            mbuild.setCookies(_m.getCookies());
-            _build = true;
-            // Stopwatch stopwatch = new Stopwatch();
-            // stopwatch.Start();
-            while (_build)
-            {
-                foreach(VillageData village in _data)
-                {
-                    int id = village.id;
-//                    Console.WriteLine("[build:{0}] GET overview", id);
-                    mbuild.get(viewUrl(id, "overview")); // get the overview to watch buildings & resources
-                    Parse.parseOverview(mbuild.getContent(), ref village.buildings, ref queue);
-                    if (queue == true)
-                        continue;
-                    // decide which building should be built
-                    lock (village.buildings)
-                    {
-                        build = whichBuilding(ref village.buildings);
-                    }
-
-                    
-                    if (build != null)
-                    {
-                        string url = actionBuild(build, id, _hkey);
-                        mbuild.get(url);
-                        Console.WriteLine("[build: {0} @ stage {3}] build {1} -> {2}", id, build, village.buildings.get(build)+1, village.buildings.level);
-                    }else
-                    {
-                        /*
-                        stopwatch.Stop();
-                        Console.WriteLine("Time elapsed: {0}",
-                                        stopwatch.Elapsed);
-                        Console.WriteLine("done!");
-                        Console.ReadKey();
-                        */
-                    }
-
-                    //Thread.Sleep(_buildingspeed);
-                }
-            }
-        }
-
-        private string whichBuilding(ref BuildingData buildings)
-        {
-            using (StreamReader sr = new StreamReader("build.json"))
-            {
-                int level = 1;
-                String json = sr.ReadToEnd();
-//                Console.WriteLine(json);
-
-                List<Dictionary<string,short>> values = JsonConvert.DeserializeObject<List<Dictionary<string, short>>>(json);
-                foreach (Dictionary<string, short> val in values)
-                {
-                    foreach (KeyValuePair<string, short> pair in val)
-                    {
-                        if (buildings.get(pair.Key) < pair.Value)
-                        {
-                            buildings.level = level;
- //                           Console.WriteLine("[{0}] is: {1}, should: {2}", pair.Key, buildings.get(pair.Key), pair.Value);
- //                           Console.WriteLine("Village is in stage "+level.ToString());
-                            return pair.Key;
-                        }
-//                        Console.WriteLine("{0}, {1}", pair.Key, pair.Value);
-                    }
-                    level ++;
-//                    Console.WriteLine();
-                }
-            }
-            return null;
-        }
-
-        // pauses the building process
-        public void pauseBuild()
-        {
-            _build = false;
-        }
-
-        // continues the building process
-        public void continueBuild()
-        {
-            _build = true;
-        }
-
 
 /*
  *
