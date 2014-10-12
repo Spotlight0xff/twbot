@@ -1,4 +1,6 @@
 using Newtonsoft.Json;
+using System.Collections.Generic;
+
 
 namespace twbot
 {
@@ -10,12 +12,33 @@ namespace twbot
         public short coord_y;
         public BuildingData buildings;
         public UnitsData units;
+        public Resources res;
+
 
         public override string ToString()
         {
             return Newtonsoft.Json.JsonConvert.SerializeObject(this);
         }
 
+    }
+
+    public class Resources
+    {
+        public Dictionary<string, int> resources;
+        public int storage;
+        public int storage_max;
+
+        public override string ToString()
+        {
+            return Newtonsoft.Json.JsonConvert.SerializeObject(this);
+        }
+
+        public int getResource(string type)
+        {
+            if ( !resources.ContainsKey(type) )
+                return 0;
+            return resources[type];
+        }
     }
 
     public class BuildingData
