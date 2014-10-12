@@ -33,7 +33,7 @@ namespace twbot
                         continue;
                     }
                     research = Parse.retrieveParam(path, "id");
-                    Console.WriteLine("[research:{0}] do  "+research, id);
+                    Console.WriteLine("[research:{0}] do "+research, id);
                     string url = Browser.construct(_host, path);
                     int status = _browser.get(url);
                     if (status != 302)
@@ -44,7 +44,7 @@ namespace twbot
                             _browser.save("id_"+id+"_research_error.html");
                         }else
                         {
-                            Console.WriteLine("[research:{0}] could not research, probably not enough resources");
+                            Console.WriteLine("[research:{0}] could not research, probably not enough resources", id);
                         }
                     }
                     
