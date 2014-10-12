@@ -23,7 +23,7 @@ for fil in files:
 print("\nID: ");
 res = input();
 file = open("monitor/monitor_"+res, 'r')
-
+lastbuildings = ''
 
 while True:
     line = file.readline();
@@ -34,7 +34,14 @@ while True:
     line = file.readline();
     if line == "":
         break
+
     j = json.loads(line);
+    if j['buildings'] != lastbuildings:
+        lastbuildings = j['buildings']
+    else:
+        continue
+
+    
     build = j['buildings']
     res = j['res']['resources']
     stor = j['res']['storage_max']
