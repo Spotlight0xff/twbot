@@ -29,7 +29,8 @@ while True:
     line = file.readline();
     if line == "":
         break
-    time = line.rstrip("\n");
+    time = float(line.rstrip("\n")) / 1000 / 60;
+    time = str(round(time, 2))
     line = file.readline();
     if line == "":
         break
@@ -47,17 +48,17 @@ while True:
     
     if wood >= stor:
         wood_col = col.FAIL
-    if math.fabs(mean - wood) > mean/3:
+    if abs(mean - wood) > mean/3:
         wood_col = col.WARNING
 
     if stone >= stor:
         stone_col = col.FAIL
-    if math.fabs(mean - stone) > mean/3:
+    if abs(mean - stone) > mean/3:
         stone_col = col.WARNING
 
     if iron >= stor:
         iron_col = col.FAIL
-    if math.fabs(mean - iron) > mean/3:
+    if abs(mean - iron) > mean/3:
         iron_col = col.WARNING
     end = col.ENDC
 
