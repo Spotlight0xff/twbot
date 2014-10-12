@@ -25,8 +25,7 @@ namespace twbot
         private static void run()
         {
             TribalWars tw = new TribalWars("192.168.43.205");
-           //Thread researchThread = new Thread(tw.doResearch);
-            bool login = tw.login("noob1", "3726");
+            bool login = tw.login("noob2", "3726");
             if (!login)
             {
                 Console.WriteLine("Unable to login");
@@ -35,6 +34,7 @@ namespace twbot
             tw.initScan();
             tw.startBuilding();
             tw.startResearch();
+            tw.startMonitoring();
         }
     }
 }
