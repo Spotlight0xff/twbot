@@ -17,6 +17,7 @@ namespace twbot
         public override void doWork()
         {
             string build = "";
+            string content = null;
             bool queue = false;
 
             _active = true;
@@ -26,7 +27,9 @@ namespace twbot
                 {
                     int id = village.id;
                     _browser.get(Parse.viewUrl(_host, id, "overview")); // get the overview to watch buildings & resources
-                    Parse.parseOverview(_browser.getContent(), ref village.buildings, ref queue);
+                    content = _browser.getContent();
+                    Parse.parseOverview(content, ref village.buildings, ref queue);
+                    Parse.parseResources(content, ref village.res);
                     if (queue == true)
                         continue;
                     // decide which building should be built
