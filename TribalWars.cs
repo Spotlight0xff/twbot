@@ -26,6 +26,7 @@ namespace twbot
         private List<VillageData> _data; // contains data of all villages in a list
         private Research _research;
         private Building _building;
+        private Monitor _monitor;
 
 
         // TODO: expand and complete
@@ -48,7 +49,7 @@ namespace twbot
             _data = null;
             _building = new Building();
             _research = new Research();
-
+            _monitor = new Monitor();
         }
 
         // logs into the tribalwars server using the provided credentials
@@ -108,15 +109,14 @@ namespace twbot
             _research.Start();
         }
 
-/*
- *
- *
- * RESEARCH PROCESS
- *
- *
- */
-
-
+       public void startMonitoring()
+        {
+            _monitor.setCookies(_m.getCookies());
+            _monitor.setHKey(_hkey);
+            _monitor.updateData(ref _data);
+            _monitor.setHost(_host);
+            _monitor.Start();
+        }
 
 /*
  *
@@ -131,7 +131,7 @@ namespace twbot
         public void initScan()
         {
             // TODO:
-            // * get session token (hkey)
+            // * get session token (hkey), done!
             // * get all villages info (buildings, troops, resources?)
             // * mails (unimportant)
             // * get point + rank
@@ -178,7 +178,7 @@ namespace twbot
         {
             VillageData village = new VillageData();
             BuildingData buildings = new BuildingData();
-
+            Resources res = new Resources();
             // query the village overview
             _m.get(Parse.viewUrl(_host, id, "overview"));
             string content = _m.getContent();
@@ -186,7 +186,9 @@ namespace twbot
             // parse the overview and save it in the struct.
             bool queue = false;
             Parse.parseOverview(content, ref buildings, ref queue);
+            Parse.parseResources(content, ref res);
             village.buildings = buildings;
+            village.res = res;
 
 
 
