@@ -37,6 +37,7 @@
     <Compile Include="Struct.cs" />
     <Compile Include="Building.cs" />
     <Compile Include="Research.cs" />
+    <Compile Include="Monitor.cs" />
     <Compile Include="Module.cs" />
   </ItemGroup>
   <ItemGroup>
