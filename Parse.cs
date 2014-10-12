@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-
+using System.IO;
 namespace twbot
 {
     public class Parse
@@ -60,6 +60,45 @@ namespace twbot
 
             return list;
         }
+
+        // parses almost any site to get resources
+        public static bool parseResources(string html, ref Resources res)
+        {
+            Match match = null;
+            res.resources = new Dictionary<string, int>();
+            string[] types = new string[] {"wood", "stone", "iron"};
+            
+            foreach (string type in types)
+            {
+                // Match regexp from "<td><span id="wood" title="21600000" class="warn">400000</span>"
+                match = Regex.Match(html, "<td><span id=\"" + type + "\" [^>.]*>([0-9]*)</span>", RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    int val = int.Parse(match.Groups[1].Value);
+                    res.resources.Add(type, val);
+                }else
+                {
+                    File.WriteAllText("debug/resource_fail.html", html);
+                    Console.WriteLine("Failed to read resources! check debug/ ("+res.resources.Count().ToString()+")");
+                    return false;
+                }
+            }
+
+            match = Regex.Match(html, "<td id=\"storage\">([0-9]*)</td>", RegexOptions.IgnoreCase);
+            if (match.Success)
+            {
+                int val = int.Parse(match.Groups[1].Value);
+                res.storage_max = val;
+            }else
+            {
+                File.WriteAllText("debug/resource_fail_storage.html", html);
+                Console.WriteLine("Failed to read storage! check debug/");
+                return false;
+            }
+
+            return true;
+       }
+
 
         // parse the village overview
         // cur_building is true when the 
