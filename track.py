@@ -2,6 +2,17 @@
 
 import json
 import os
+import math
+import statistics
+
+
+class col:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
 
 files = os.listdir("monitor")
 print("Which village do you want to track?")
@@ -12,6 +23,7 @@ for fil in files:
 print("\nID: ");
 res = input();
 file = open("monitor/monitor_"+res, 'r')
+
 
 while True:
     line = file.readline();
@@ -28,8 +40,29 @@ while True:
     wood = res['wood']
     stone = res['stone']
     iron = res['iron']
+    mean = statistics.mean([wood, stone, iron])
+    wood_col = col.ENDC
+    stone_col = col.ENDC
+    iron_col = col.ENDC
+    
+    if wood >= stor:
+        wood_col = col.FAIL
+    if math.fabs(mean - wood) > mean/3:
+        wood_col = col.WARNING
 
-    print(time.ljust(20)+" | " + str(build['level']).ljust(2) + " | " + str(wood).ljust(7) + " | " + str(stone).ljust(7) + " | " + str(iron).ljust(7) + " | " + str(stor).ljust(7));
+    if stone >= stor:
+        stone_col = col.FAIL
+    if math.fabs(mean - stone) > mean/3:
+        stone_col = col.WARNING
+
+    if iron >= stor:
+        iron_col = col.FAIL
+    if math.fabs(mean - iron) > mean/3:
+        iron_col = col.WARNING
+    end = col.ENDC
+
+
+    print(time.ljust(20)+" | " + str(build['level']).ljust(2) + " | " + wood_col + str(wood).ljust(7) + end + " | " + stone_col + str(stone).ljust(7) + end + " | " + iron_col + str(iron).ljust(7) + end + " | " + str(stor).ljust(7));
 
 
 
