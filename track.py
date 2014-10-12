@@ -25,8 +25,11 @@ while True:
     build = j['buildings']
     res = j['res']['resources']
     stor = j['res']['storage_max']
+    wood = res['wood']
+    stone = res['stone']
+    iron = res['iron']
 
-    print(time.ljust(20)+" | " + str(build['level']).ljust(2) + " | " + str(res['wood']).ljust(7) + " | " + str(res['stone']).ljust(7) + " | " + str(res['iron']).ljust(7) + " | " + str(stor).ljust(7));
+    print(time.ljust(20)+" | " + str(build['level']).ljust(2) + " | " + str(wood).ljust(7) + " | " + str(stone).ljust(7) + " | " + str(iron).ljust(7) + " | " + str(stor).ljust(7));
 
 
 
