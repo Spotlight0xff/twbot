@@ -25,7 +25,6 @@ namespace twbot
     public class Resources
     {
         public Dictionary<string, int> resources;
-        public int storage;
         public int storage_max;
 
         public override string ToString()
