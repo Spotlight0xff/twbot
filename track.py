@@ -41,36 +41,38 @@ while True:
     else:
         continue
 
-    
-    build = j['buildings']
-    res = j['res']['resources']
-    stor = j['res']['storage_max']
-    wood = res['wood']
-    stone = res['stone']
-    iron = res['iron']
-    mean = statistics.mean([wood, stone, iron])
-    wood_col = col.ENDC
-    stone_col = col.ENDC
-    iron_col = col.ENDC
-    
-    if wood >= stor:
-        wood_col = col.FAIL
-    if abs(mean - wood) > mean/3:
-        wood_col = col.WARNING
+    try:    
+        build = j['buildings']
+        res = j['res']['resources']
+        stor = j['res']['storage_max']
+        wood = res['wood']
+        stone = res['stone']
+        iron = res['iron']
+        mean = statistics.mean([wood, stone, iron])
+        wood_col = col.ENDC
+        stone_col = col.ENDC
+        iron_col = col.ENDC
+        
+        if wood >= stor:
+            wood_col = col.FAIL
+        if abs(mean - wood) > mean/3:
+            wood_col = col.WARNING
 
-    if stone >= stor:
-        stone_col = col.FAIL
-    if abs(mean - stone) > mean/3:
-        stone_col = col.WARNING
+        if stone >= stor:
+            stone_col = col.FAIL
+        if abs(mean - stone) > mean/3:
+            stone_col = col.WARNING
 
-    if iron >= stor:
-        iron_col = col.FAIL
-    if abs(mean - iron) > mean/3:
-        iron_col = col.WARNING
-    end = col.ENDC
+        if iron >= stor:
+            iron_col = col.FAIL
+        if abs(mean - iron) > mean/3:
+            iron_col = col.WARNING
+        end = col.ENDC
 
 
-    print(time.ljust(20)+" | " + str(build['level']).ljust(2) + " | " + wood_col + str(wood).ljust(7) + end + " | " + stone_col + str(stone).ljust(7) + end + " | " + iron_col + str(iron).ljust(7) + end + " | " + str(stor).ljust(7));
+        print(time.ljust(20)+" | " + str(build['level']).ljust(2) + " | " + wood_col + str(wood).ljust(7) + end + " | " + stone_col + str(stone).ljust(7) + end + " | " + iron_col + str(iron).ljust(7) + end + " | " + str(stor).ljust(7))
+    except:
+        print("fail")
 
 
 
