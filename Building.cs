@@ -19,8 +19,10 @@ namespace twbot
             string build = "";
             string content = null;
             bool queue = false;
+            bool done = false;
 
             _active = true;
+            Console.WriteLine("[build] start building thread");
             while (_active)
             {
                 foreach(VillageData village in _data)
@@ -44,12 +46,26 @@ namespace twbot
                         string url = Parse.actionBuild(_host, build, id, _hkey);
                         _browser.get(url);
                         Console.WriteLine("[build: {0} @ stage {3}] build {1} -> {2}", id, build, village.buildings.get(build)+1, village.buildings.level);
+                    }else
+                    {
+                        if (!done)
+                        {
+                            Console.WriteLine("[build: {0}] done building.");
+                            done = true;
+                        }
                     }
                     //Thread.Sleep(_buildingspeed);
                 }
             }
         }
 
+
+
+        /// <summary>Decides which building should be built</summary>
+        /// <remarks>reads "build.json" to decide which building
+        /// needs to be build in order to complete the stages</remarks>
+        /// <param name="buildings">BuildingData-struct for a village
+        /// on which should be operated</param>
         private string whichBuilding(ref BuildingData buildings)
         {
             using (StreamReader sr = new StreamReader("build.json"))

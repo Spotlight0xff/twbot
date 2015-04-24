@@ -4,14 +4,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.IO;
+
+
 namespace twbot
 {
+    /// <summary>Parses HTML content</summary>
     public class Parse
     {
 
-        // tries to parse the hkey on a html side
-        // should work everywhere, as we scan for the logout-link which contains it
-        // and is on every page
+        /// <summary>
+        /// Parses the H-Key on a HTML page.
+        /// Should work on any logged-in page as we parse the logout link.
+        /// </summary>
+        /// <param name="html">HTML content to parse</param>
+        ///	<returns>hkey if found, else null</returns>
         public static string parseHkey(string html)
         {
             string hkey = null;
@@ -37,8 +43,11 @@ namespace twbot
         }
 
 
-        // Parses the villages (production) overview to get the village Ids
-        // returns them in a List
+        /// <summary>
+        /// parses the production overview to get all village IDs
+        /// </summary>
+        /// <param name="html">HTML content to parse</param>
+        ///	<returns>List of Village IDs</returns>
         public static List<short> parseVillagesOverview(string html)
         {
             List<short> list = new List<short>();
@@ -61,7 +70,13 @@ namespace twbot
             return list;
         }
 
-        // parses almost any site to get resources
+        /// <summary>
+        /// Parses a HTML page for resource information (wood/stone/iron) and storage capacity.
+        /// Saves the resources in the provided Resources variable.
+        /// </summary>
+        /// <param name="html">HTML page to parse</param>
+        /// <param name="res">Resource to save to</param>
+        ///	<returns>false on error, true on success</returns>
         public static bool parseResources(string html, ref Resources res)
         {
             Match match = null;
@@ -102,6 +117,14 @@ namespace twbot
 
         // parse the village overview
         // cur_building is true when the 
+        /// <summary>
+        /// Parse the village overview to get building levels.
+        /// Saves the information in the provided `buildings` variable.
+        /// </summary>
+        /// <param name="html">HTML page to parse</param>
+        /// <param name="buildings">variable to save the found levels</param>
+        /// <param name="queue">writes true to this if there is a queue</param>
+        ///	<returns>false on error, true on success</returns>
         public static bool parseOverview(string html, ref BuildingData buildings, ref bool queue)
         {
 
@@ -163,7 +186,12 @@ namespace twbot
  
 
 
-        // searches the html for a link with the specific match (in work)
+        /// <summary>
+        /// Search a HTML page for a link with a specific match
+        /// </summary>
+        /// <param name="html">HTML page to parse</param>
+        /// <param name="query">Search query</param>
+        ///	<returns>Link if found or null otherwise</returns>
         public static string searchLink(string html, string query)
         { 
             HtmlAgilityPack.HtmlDocument doc = new HtmlDocument();
@@ -185,10 +213,16 @@ namespace twbot
 
 
 
-        // tries to retrieve the parameter specified in 'param' from an URL
-        // example: url = "http://192.168.2.100/game.php?village=42&screen=overview"
-        // retrieveParam(url, "village");
-        // ^ returns "42"
+        /// <summary>
+        /// Tries to retrieve a parameter in the provided URL.
+        /// For example:
+        /// url = "http://127.0.0.1/game.php?village=42&amp;screen=overview"
+        /// retrieveParam(url, "village");
+        /// ^ returns "42"."
+        /// </summary>
+        /// <param name="url">URL to parse</param>
+        /// <param name="param">Parameter</param>
+        ///	<returns>Value of the parameter as a String</returns>
         public static string retrieveParam(string url, string param)
         {
             // Console.WriteLine("Process: "+url);
@@ -209,8 +243,14 @@ namespace twbot
             return null;
         }
 
-        // handles parsing errors and saves the affected htmlcode in a file
-        // returns false, when an error has occured
+        /// <summary>
+        /// handles any parsing errors and saves the affected
+        /// HTML content in a file to debug the error 
+        /// (if a parsing error occured)
+        /// </summary>
+        /// <param name="doc">HtmlDocument to parse</param>
+        /// <param name="func">Function name (to save it with an appropiate filename)</param>
+        ///	<returns>true on success and false on parse error</returns>
         private static bool handleError(HtmlDocument doc, string func)
         {
             if (doc.ParseErrors != null && doc.ParseErrors.Count() > 0)
@@ -222,13 +262,27 @@ namespace twbot
             return true;
         }
 
-        // constructs an URL to build a building (hkey is required to work)
+        /// <summary>
+        /// construct an URL to build a building (hkey required to work).
+        /// </summary>
+        /// <param name="host">Host (Domain)</param>
+        /// <param name="building">building to build</param>
+        /// <param name="village">village ID</param>
+        /// <param name="hkey">hkey to include into the URL</param>
+        ///	<returns>constructed URL</returns>
         public static string actionBuild(string host, string building, int village, string hkey)
         {
             return Browser.construct(host, "game.php", "village="+village+"&screen=main&action=build&id="+building+"&h="+hkey);
         }
 
-
+        /// <summary>
+        /// construct an URL to a specified view.
+        /// </summary>
+        /// <param name="host">Host (Domain)</param>
+        /// <param name="village">Village ID</param>
+        /// <param name="screen">specified screen-view</param> 
+        /// <param name="addition">any addition to the URL</param>
+        ///	<returns>constructed URL</returns>
         public static string viewUrl(string host, int village, string screen, string addition=null)
         {
             return Browser.construct(host, "game.php", "village="+village+"&screen="+screen)+ (addition ?? "");

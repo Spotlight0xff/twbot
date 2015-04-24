@@ -28,6 +28,12 @@ namespace twbot
          * string url: URL to send GET-Request
          * returns the http status code
          */
+        /// <summary>
+        /// Queries a website using HTTP-GET
+        /// <seealso cref="get(System.Uri)"/>
+        /// </summary>
+        /// <param name="url">the URL to the website</param>
+        ///	<returns>HTTP status code or 0 on error</returns>
         public int get(string url)
         {
             try
@@ -42,12 +48,15 @@ namespace twbot
             return get(_url);
         }
 
-        // see get(string url)
+        /// <summary>
+        /// Queries a website using HTTP-Get
+        /// <seealso cref="get(System.String)" />
+        /// </summary>
+        /// <param name="uri">Uri object to the website</param>
+        ///	<returns>HTTP status code or 0 on error</returns>
         public int get(Uri uri)
         {
-
-            // display URI
-            // Console.WriteLine("GET "+uri);
+            // Debug.WriteLine("GET "+uri);
 
             HttpWebRequest req = null;
             try
@@ -89,10 +98,12 @@ namespace twbot
 
         }
 
-        /*
-         * Requests the host with a POST-method query using data as parameters
-         * returns the http status code
-         */
+        /// <summary>
+        /// Requests a Website with POST using the specified payload
+        /// </summary>
+        /// <param name="url">URL to the webpage</param>
+        /// <param name="data">POST-Payload</param>
+        ///	<returns>HTTP Statuscode or 0 on error</returns>
         public int post(string url, string data)
         {
             try
@@ -109,6 +120,12 @@ namespace twbot
         }
 
         // see 'public int post(string url, string data)'
+        /// <summary>
+        /// Requests a Webpage with POST using a specified payload
+        /// </summary>
+        /// <param name="uri">Uri object of the webpage</param>
+        /// <param name="data">POST payload</param>
+        ///	<returns>HTTP Statuscode or 0 on error</returns>
         public int post(Uri uri, string data)
         {
 
@@ -198,45 +215,65 @@ namespace twbot
             return _status;
         }
 
+        /// <summary>
+        /// Sets the cookie container of the Browser session
+        /// </summary>
+        /// <param name="cj">Cookie container using the new cookies</param>
         public void setCookies(CookieContainer cj)
         {
             _cookieJar = cj;
         }
 
+        /// <summary>
+        /// gets the current cookie container
+        /// </summary>
+        ///	<returns>current cookie container</returns>
         public CookieContainer getCookies()
         {
             return _cookieJar;
         }
 
-        /*
-         * Refreshes the current page, only GET-requests (POST will not be refreshed)
-         * returns http status code (just like get() and post()) 
-         */
+        /// <summary>
+        /// Refreshes the current page, only per GET
+        /// </summary>
+        ///	<returns>HTTP Statuscode of the refresh call</returns>
         public int refresh()
         {
             // just call get on the current url for now.
             return get(_url);
         }
 
-        // returns html content
+        /// <summary>
+        /// returns HTML content of the current page without refreshing the page
+        /// </summary>
+        ///	<returns>HTML content</returns>
         public string getContent()
         {
             return _content;
         }
 
-        // returns current url
+        /// <summary>
+        /// returns current URL
+        /// </summary>
+        ///	<returns>current URL as string</returns>
         public string getUrl()
         {
             return _url.ToString();
         }
 
-        // returns redirect URL (useful for login e.g), httpcode 302
+        /// <summary>
+        /// returns redirect URL (when the statuscode was 302)
+        /// </summary>
+        ///	<returns>redirect URL as string</returns>
         public string getRedirect()
         {
             return _redirect;
         }
 
-        // write content into a file
+        /// <summary>
+        /// Writes HTML content into a file
+        /// </summary>
+        /// <param name="file">file to save the content</param>
         public void save(string file)
         {
             if (_content != null)
@@ -247,6 +284,14 @@ namespace twbot
             
 
         // constructs a url with the provided arguments
+        /// <summary>
+        /// Constructs an URL with the provided arguments
+        /// </summary>
+        /// <param name="host">Host domain or IP</param>
+        /// <param name="path">Path to page</param>
+        /// <param name="query">Query argument</param>
+        /// <param name="fragment">Query value/fragment</param>
+        ///	<returns>constructed URL</returns>
         public static string construct(string host, string path = null, string query = null, string fragment = null)
         {
             // build "http://host/path?query#fragment"
