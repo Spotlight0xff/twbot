@@ -24,10 +24,6 @@ namespace twbot
             _redirect = null;
         }
 
-        /*
-         * string url: URL to send GET-Request
-         * returns the http status code
-         */
         /// <summary>
         /// Queries a website using HTTP-GET
         /// <seealso cref="get(System.Uri)"/>
