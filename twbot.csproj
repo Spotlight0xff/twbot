@@ -32,15 +32,15 @@
  </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Compile Include="Browser.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="TribalWars.cs" />
-    <Compile Include="Parse.cs" />
-    <Compile Include="Struct.cs" />
-    <Compile Include="Building.cs" />
-    <Compile Include="Research.cs" />
-    <Compile Include="Monitor.cs" />
-    <Compile Include="Module.cs" />
+      <Compile Include="src/Browser.cs" />
+      <Compile Include="src/Program.cs" />
+      <Compile Include="src/TribalWars.cs" />
+      <Compile Include="src/Parse.cs" />
+      <Compile Include="src/Struct.cs" />
+      <Compile Include="src/Building.cs" />
+      <Compile Include="src/Research.cs" />
+      <Compile Include="src/Monitor.cs" />
+      <Compile Include="src/Module.cs" />
   </ItemGroup>
   <ItemGroup>
   <Reference Include="HtmlAgilityPack">
